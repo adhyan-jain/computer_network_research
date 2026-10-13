@@ -1,10 +1,10 @@
 # Reconstructed Theoretical Counterexamples and Boundary Cases
 
-**Purpose:** Rigorous documentation of edge cases, failure modes, and counterexamples that delineate the exact boundary conditions of Theorems 1–4.
+**Purpose:** Rigorous documentation of edge cases, mathematical falsifications, and counterexamples that delineate the exact boundary conditions of Theorems 1–4.
 
 ---
 
-## 1. Counterexample 1: Medium Contention Breaks End-to-End Attribution Invariance
+## 1. Counterexample 1: Medium Contention Breaks End-to-End Causal Attribution Invariance
 
 ### Scenario
 - Consider Flow 1 operating alone in the network.
@@ -31,16 +31,12 @@ Flow 1's "self-blocking delay" $\mathcal{S}_2$ increased from $0.0$ ms to $1.8$ 
 
 ---
 
-## 2. Counterexample 2: Single-Link Operation Falsifies Universal Causal Floor
+## 2. Counterexample 2: Single-Link Operation Falsifies Unconditioned Lower Bounds
 
 ### Scenario
 - An MLD transmitter has two active links: Link 1 (2.4 GHz, $\mu_1 = 3.0$ ms, $\sigma_1 = 0.5$ ms) and Link 2 (5 GHz, $\mu_2 = 1.0$ ms, $\sigma_2 = 0.2$ ms).
 - Two flows (Flow $A$ and Flow $B$) share TID 0.
-- The project's historical Theorem 4 claimed that for *any* online causal scheduler, expected cross-flow delay is strictly lower-bounded by:
-  $$\mathbb{E}[\mathcal{X}] \ge \min(w_a, w_b) \frac{\sigma_Z}{\sqrt{2\pi}} e^{-u^2/2} > 0$$
-
-### Causal Policy Execution
-- Consider a causal scheduler that selects **Single-Link Operation (SLO)**, routing all frames from both Flow $A$ and Flow $B$ exclusively over Link 2 in FIFO order.
+- A causal scheduler selects **Single-Link Operation (SLO)**, routing all frames from both Flow $A$ and Flow $B$ exclusively over Link 2 in FIFO order.
 - On Link 2, physical transmissions occur sequentially over a single radio interface.
 - Frames complete physical transmission in strict FIFO order: $A_1 < A_2 < A_3 < \dots$
 - Sequence numbers are assigned in FIFO order: $s_1 < s_2 < s_3 < \dots$
@@ -51,11 +47,11 @@ Flow 1's "self-blocking delay" $\mathcal{S}_2$ increased from $0.0$ ms to $1.8$ 
 
 ### Implication
 The causal single-link scheduler achieves **exact zero cross-flow blocking delay** ($\mathcal{X} = 0$).  
-**Conclusion:** Theorem 4 is not universal. It holds *strictly conditional on concurrent frame dispatch across stochastic parallel links*.
+**Conclusion:** Theorem 4 is not universal across all online policies. It holds *strictly conditional on concurrent frame dispatch across stochastic parallel links*.
 
 ---
 
-## 3. Counterexample 3: Why Simple Pairwise Comparison is Sub-Optimal for $N \ge 3$ Frames
+## 3. Counterexample 3: Order Statistics Non-Linearity Breaks Global Optimality for $N \ge 3$ Frames
 
 ### Scenario
 - Consider three candidate frames ready for dispatch across three links:
@@ -68,11 +64,63 @@ The causal single-link scheduler achieves **exact zero cross-flow blocking delay
 ### Order Statistics Non-Linearity
 - For three variables, $\mathbb{E}[\max(A_a, A_b, A_c)]$ cannot be decomposed into the sum of pairwise expectations $\mathbb{E}[(A_a - A_b)^+] + \mathbb{E}[(A_b - A_c)^+]$.
 - By Clark's formula (1961), the distribution of $\max(X, Y)$ is skewed (non-Gaussian) even when $X$ and $Y$ are jointly normal.
-- A sequential greedy pairwise application of Theorem 3 may choose $s_c < s_b < s_a$, but if Link 1 exhibits high variance tail risk, joint multi-packet scheduling requires evaluating the joint cumulative distribution function (CDF):
+- A sequential greedy pairwise application of Theorem 3 sorts candidate frames by their pairwise indices, but joint multi-packet scheduling requires evaluating the joint cumulative distribution function:
   $$F_{\max}(t) = \prod_{k \in \mathcal{P}_i} \Phi\left(\frac{t - \mu_k}{\sigma_k}\right)$$
 
 ### Implication
-Pairwise index sorting via Theorem 3 is an efficient $\mathcal{O}(M \log M)$ heuristic, but **not a globally optimal policy for general $N$ in-flight packets**.
+Pairwise index sorting via Theorem 3 is an efficient $\mathcal{O}(M \log M)$ heuristic, but **not a globally optimal policy for general $N \ge 3$ in-flight packets**.
+
+---
+
+## 4. Counterexample 4: Numerical Falsification of the Claimed $\sigma_Z \phi(u)$ Lower Bound
+
+### Scenario
+- Consider frames $a$ and $b$ with equal weights $w_a = w_b = 1.0$.
+- Let $Z = A_a - A_b \sim \mathcal{N}(d, \sigma_Z^2)$ with $\sigma_Z = 1.0$ and mean asymmetry $d = 2.0$, so $u = d / \sigma_Z = 2.0$.
+- The historical claim asserted:
+  $$\min(C(s_a < s_b), C(s_b < s_a)) \ge \min(w_a, w_b) \sigma_Z \phi(u)$$
+- Evaluating the claimed lower bound at $u = 2.0$:
+  $$\min(w_a, w_b) \sigma_Z \phi(2.0) = 1.0 \times 1.0 \times \frac{1}{\sqrt{2\pi}} e^{-2^2 / 2} \approx 0.05399$$
+
+### Actual Cost Evaluation
+- Now compute the actual cost of assigning $s_b < s_a$:
+  $$C(s_b < s_a) = w_a \mathbb{E}[(-Z)^+] = \sigma_Z \left[ \phi(u) - u (1 - \Phi(u)) \right]$$
+- For $u = 2.0$:
+  $$\phi(2.0) \approx 0.05399$$
+  $$\Phi(2.0) \approx 0.97725 \implies 1 - \Phi(2.0) \approx 0.02275$$
+  $$u (1 - \Phi(u)) = 2.0 \times 0.02275 = 0.04550$$
+  $$C(s_b < s_a) = 0.05399 - 0.04550 = 0.00849$$
+- Therefore:
+  $$\min(C(s_a < s_b), C(s_b < s_a)) \le C(s_b < s_a) = 0.00849 < 0.05399$$
+
+### Implication
+The actual optimal cost ($0.00849$) is **more than 6 times smaller** than the claimed lower bound ($0.05399$).  
+**Conclusion:** The claimed lower bound is mathematically false for all $u > 0$ because $\mathbb{E}[(-Z)^+] < \sigma_Z \phi(u)$ when $u > 0$. As $u \to \infty$, the optimal cost decays to $0$.
+
+---
+
+## 5. Counterexample 5: Falsification of "Almost Surely" Window Stall at Critical Rate $\lambda^*$
+
+### Scenario
+- Consider a Block Ack window of size $W = 16$.
+- Link 1 has service duration $\delta = 8.0$ ms.
+- Link 2 receives Poisson arrivals at rate $\lambda_2 = \lambda^* = W / \delta = 16 / 8.0\text{ ms} = 2.0\text{ pkts/ms}$.
+- Mean arrivals during $\delta$: $\mathbb{E}[N] = \lambda_2 \delta = 16.0$.
+- The historical claim asserted that for $\lambda_2 \ge \lambda^*$, the receiver buffer stalls **almost surely** ($\Pr(\text{stall}) = 1.0$).
+
+### Stochastic Reality
+- Because arrivals are Poisson, the probability that fewer than $W$ packets arrive is strictly positive:
+  $$\Pr(N < W) = \sum_{k=0}^{W-1} \frac{(\lambda_2 \delta)^k e^{-\lambda_2 \delta}}{k!} = \sum_{k=0}^{15} \frac{16^k e^{-16}}{k!} \approx 0.4667$$
+- Therefore, at the critical rate $\lambda_2 = \lambda^*$:
+  $$\Pr(\text{stall}) = \Pr(N \ge W) = 1 - 0.4667 = 0.5333$$
+  The probability of stalling is only $\approx 53.3\%$, while the probability of NOT stalling is $\approx 46.7\%$.
+- Even at $20\%$ overload ($\lambda_2 = 1.2 \lambda^*$, mean arrivals $= 19.2$):
+  $$\Pr(N < 16) \approx 0.2021$$
+  The buffer does NOT stall in more than $20\%$ of instances!
+
+### Implication
+$\lambda^*$ is a **mean-drift / load crossover condition**, not an almost-sure guarantee. For finite traffic, stall probability is governed by the Poisson tail distribution:
+$$P_{\text{stall}} = 1 - \sum_{k=0}^{W-1} \frac{(\lambda \delta)^k e^{-\lambda \delta}}{k!} = \frac{\gamma(W, \lambda \delta)}{(W-1)!}$$
 
 ---
 
