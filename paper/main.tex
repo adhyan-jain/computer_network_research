@@ -32,7 +32,7 @@
 \begin{abstract}
 The IEEE 802.11be (Wi-Fi 7) amendment introduces Multi-Link Operation (MLO) to aggregate throughput and reduce latency across multiple radio bands (2.4~GHz, 5~GHz, and 6~GHz). However, under standard multi-link Block Acknowledgment (BA) agreements, all application flows mapped to a given Traffic Identifier (TID) share a single, unified 12-bit sequence-number space and a common receiver reordering buffer. When heterogeneous frames are scheduled across parallel radio links with asymmetric transmission delays, contention backoffs, and frame error rates, out-of-order physical arrivals create severe Head-of-Line (HOL) reordering stalls. Crucially, a delayed frame from a bulk background flow traps successfully received frames from latency-critical flows in the receiver buffer---a phenomenon we define as \emph{Cross-Flow Head-of-Line (CF-HOL) Blocking}.
 
-In this paper, we develop the first formal analytical framework and sender-side scheduling policy for CF-HOL blocking under standard IEEE 802.11be receiver semantics. First, we prove an orthogonal decomposition theorem demonstrating that total receiver reorder delay partitions additively and uniquely into intra-flow self-blocking and inter-flow cross-blocking ($\Delta_i = \mathcal{S}_i + \mathcal{X}_i$) at the buffer accounting boundary. Second, we establish the Multi-Link Sequence Divergence and Buffer Stability Bound ($\lambda_2 < (W - z_\alpha \sigma_{\Delta s}) / \mu_1$), showing that exceeding the critical threshold $\lambda^* = W / \mu_1$ triggers severe window stalls and tail latency surge. Third, we formulate the joint packet selection, link mapping, and sequence assignment problem, proving that the optimal pairwise sequence order between concurrent frames is uniquely determined by a transcendental threshold root $u^*(w_a, w_b)$ solved via Newton-Raphson iteration. Fourth, we establish a conditional stochastic uncertainty lower bound demonstrating that concurrent multi-link dispatch over stochastic Gaussian channels cannot achieve zero cross-flow delay. Guided by these theoretical results, we design \emph{Sequence-Aware Stochastic Partitioning (SASP)}, a transmitter-side Upper MAC scheduling algorithm that suppresses receiver stalls without modifying standard IEEE 802.11be receiver-side protocol semantics. Rigorous simulations across 30 random seeds demonstrate that SASP suppresses cross-flow blocking by 16.1\%--17.7\% across link asymmetry sweeps, reduces cross-blocking by up to 90.2\% under near-saturation loads, suppresses high-loss cross-blocking by 36.2\%, and delivers a 20.5\% reduction in priority-weighted cost in algorithmic ablation while preserving 100\% link goodput and executing in $\le 15.3\,\mu\text{s}$ per decision.
+In this paper, we develop a formal analytical framework and sender-side scheduling policy for CF-HOL blocking under standard IEEE 802.11be receiver semantics. First, we prove an orthogonal decomposition theorem demonstrating that total receiver reorder delay partitions additively and uniquely into intra-flow self-blocking and inter-flow cross-blocking ($\Delta_i = \mathcal{S}_i + \mathcal{X}_i$) as an exact trace accounting identity. Second, we establish the Multi-Link Sequence Divergence model, characterizing the mean-drift crossover boundary $\lambda^* = W / \delta$ and deriving the exact Poisson stall probability $\Pr(N \ge W) = \gamma(W, \lambda_2 \delta) / (W-1)!$, showing that approaching the boundary induces severe sliding window stalls with cumulative delay scaling as $\frac{1}{2} \lambda_2 \delta^2$. Third, we formulate the pairwise sequence assignment problem, proving that the optimal sequence order between concurrent frames is uniquely determined by a transcendental threshold root $u^*(w_a, w_b)$ solved via Newton-Raphson iteration. Fourth, we establish a symmetric-link causal uncertainty floor ($\min(w_a, w_b) \frac{\sigma_Z}{\sqrt{2\pi}}$) demonstrating that concurrent multi-link dispatch over stochastic Gaussian channels cannot achieve zero cross-flow delay. Guided by these theoretical results, we design \emph{Sequence-Aware Stochastic Partitioning (SASP)}, a transmitter-side Upper MAC scheduling algorithm that suppresses receiver stalls without modifying standard IEEE 802.11be receiver-side protocol semantics. Rigorous simulations across 30 random seeds demonstrate that SASP suppresses cross-flow blocking by 16.1\%--17.7\% across link asymmetry sweeps, reduces cross-blocking by up to 90.2\%--96.8\% under near-saturation loads, suppresses high-loss cross-blocking by 36.2\%, and delivers up to 20.5\% reduction in priority-weighted cost in algorithmic ablation while preserving 100\% link goodput and executing in 1.3--4.0\,$\mu\text{s}$ per decision for typical topologies.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -76,13 +76,13 @@ Recent empirical measurements by Oliveira et al.~\cite{oliveira2026characterizin
     \item \emph{Non-Standard or Receiver-Side Proposals:} Proprietary patents, such as MediaTek US12470496B2~\cite{mediatek2024reordering}, propose receiver-side Deep Packet Inspection (DPI) to construct per-flow reorder queues. This violates standard IEEE 802.11be protocol semantics, requires specialized receiver silicon, and leaves commercial off-the-shelf client devices completely unprotected.
 \end{enumerate}
 
-\textbf{Contributions:} In this paper, we resolve these challenges by establishing the first mathematically rigorous analytical model and sender-side scheduling architecture for CF-HOL blocking in Wi-Fi 7:
+\textbf{Contributions:} In this paper, we resolve these challenges by establishing an analytical model and sender-side scheduling architecture for CF-HOL blocking in Wi-Fi 7:
 \begin{itemize}
-    \item \textbf{Orthogonal Delay Decomposition (Theorem 1):} We prove that total receiver reordering delay decomposes additively, uniquely, and non-negatively into intra-flow self-blocking and inter-flow cross-blocking ($\Delta_i = \mathcal{S}_i + \mathcal{X}_i$), providing an exact in-buffer accounting metric.
-    \item \textbf{Sequence Divergence \& Stability Bound (Theorem 2):} We derive the stochastic divergence condition $\lambda_2 < (W - z_\alpha \sigma_{\Delta s}) / \mu_1$ and asymptotic collapse boundary $\lambda^* = W / \mu_1$, showing that exceeding the threshold induces severe sliding window stalls with quadratic delay scaling $\frac{1}{2} \lambda_2 \delta^2$.
-    \item \textbf{Optimal Pairwise Predictive Sequencing Rule (Theorem 3):} We formulate the joint scheduling and sequence assignment problem, proving that the optimal causal sequence order between concurrent candidate frames is uniquely determined by a transcendental threshold root $u^*(w_a, w_b)$ solved via Newton-Raphson in $\le 4$ steps.
-    \item \textbf{Conditional Uncertainty Floor (Theorem 4):} We establish a fundamental lower bound proving that concurrent multi-link dispatch over stochastic Gaussian links cannot achieve zero cross-flow delay, while explicitly delineating its boundary conditions (e.g., Single-Link Operation achieves $\mathcal{X}=0$).
-    \item \textbf{The SASP Algorithm \& Comprehensive Validation:} We design \emph{Sequence-Aware Stochastic Partitioning (SASP)}, an Upper MAC algorithm executing in $\le 15.3\,\mu\text{s}$ in Python ($< 4\,\mu\text{s}$ typically). Benchmarked across eight baselines and 30 random seeds, SASP reduces cross-flow blocking by 16.1\%--17.7\% under asymmetry, up to 90.2\% under buffer load, and 36.2\% under loss, while strictly adhering to standard 802.11be receiver semantics.
+    \item \textbf{Orthogonal Delay Decomposition (Theorem 1):} We prove that total receiver reordering delay decomposes additively, uniquely, and non-negatively into intra-flow self-blocking and inter-flow cross-blocking ($\Delta_i = \mathcal{S}_i + \mathcal{X}_i$) as an exact trace accounting framework.
+    \item \textbf{Sequence Divergence \& Stall Probability (Theorem 2):} We establish the mean-drift crossover boundary $\lambda^* = W / \delta$, derive the exact Poisson stall probability $\Pr(N \ge W) = \gamma(W, \lambda_2 \delta) / (W-1)!$, and prove quadratic cumulative stall scaling $\frac{1}{2} \lambda_2 \delta^2$.
+    \item \textbf{Optimal Pairwise Predictive Sequencing Rule (Theorem 3):} We formulate the pairwise sequence assignment problem, proving that the optimal causal sequence order between concurrent candidate frames is uniquely determined by a transcendental threshold root $u^*(w_a, w_b)$ solved via Newton-Raphson in $\le 4$ steps, providing an efficient index heuristic for multi-frame scheduling.
+    \item \textbf{Symmetric-Link Uncertainty Floor (Theorem 4):} We prove that concurrent dispatch over symmetric stochastic links has an irreducible cross-flow delay floor $\min(w_a, w_b) \frac{\sigma_Z}{\sqrt{2\pi}}$, while explicitly identifying its falsification boundaries (e.g., Single-Link Operation achieves $\mathcal{X}=0$).
+    \item \textbf{The SASP Algorithm \& Validation:} We design \emph{Sequence-Aware Stochastic Partitioning (SASP)}, an Upper MAC algorithm executing in 1.3--4.0\,$\mu\text{s}$ typically in Python. Benchmarked across eight baselines and 30 random seeds, SASP reduces cross-flow blocking by 16.1\%--17.7\% under asymmetry, up to 90.2\%--96.8\% under buffer load, and 36.2\% under loss, while strictly adhering to standard 802.11be receiver semantics.
 \end{itemize}
 
 \section{Related Work and State of the Art}
@@ -106,11 +106,11 @@ To mitigate MLO reordering stalls, proprietary patent filings have emerged. Most
 
 While effective in closed ecosystems, this approach has severe practical drawbacks:
 \begin{enumerate}
-    \item It violates standard IEEE 802.11be receiver protocol semantics, which dictate a single TID reordering buffer.
+    \item It alters standard IEEE 802.11be receiver protocol semantics, which dictate a single TID reordering buffer.
     \item It cannot accelerate standard commercial client stations (smartphones, IoT devices) that implement unmodified 802.11be MAC firmware.
-    \item It requires expensive packet header inspection hardware on power-constrained mobile receivers.
+    \item It requires packet header inspection hardware on power-constrained mobile receivers.
 \end{enumerate}
-In contrast, our proposed SASP algorithm resides \textbf{strictly at the transmitting U-MAC}. The transmitter optimizes link dispatch and sequence numbering such that packets arrive physically in sequential order at the receiver. Standard commercial client devices receive packets within valid sequence windows and deliver them with zero stalls, guaranteeing full protocol compliance and complete independence from receiver-side patents.
+In contrast, our proposed SASP algorithm resides \textbf{strictly at the transmitting U-MAC}. The transmitter optimizes link dispatch and sequence numbering such that packets arrive physically in sequential order at the receiver. Standard commercial client devices receive packets within valid sequence windows and deliver them with zero stalls, guaranteeing full protocol compliance and complete independence from receiver-side patents. (We note that this comparison represents an engineering prior-art analysis and does not constitute a formal legal freedom-to-operate opinion.)
 
 \section{System Model and Problem Formulation}
 \label{sec:system_model}
@@ -129,7 +129,7 @@ where $N_{i, k} \in [1, N_{\max}]$ is the number of transmission attempts until 
 \begin{equation}
     A_i = t_i^{\text{disp}} + D_i(\ell_i)
 \end{equation}
-The link service duration $D_i(k)$ is modeled as a continuous random variable with mean $\mu_k$, variance $\sigma_k^2$, and sub-Gaussian parameter $\nu_k^2$. Channel error dynamics are captured via a two-state Gilbert-Elliott model alternating between Good (low FER) and Bad (high FER) channel states.
+The link service duration $D_i(k)$ is modeled as a continuous random variable with mean $\mu_k$ and variance $\sigma_k^2$. Channel error dynamics are captured via a two-state Gilbert-Elliott model alternating between Good and Bad channel states.
 
 \begin{table*}[t]
 \centering
@@ -172,13 +172,13 @@ The total reordering delay experienced by packet $i$ is $\Delta_i = R_i - A_i \g
 
 To rigorously study multi-flow interference, we must isolate the delay intrinsic to a flow's own dispersion from the delay imposed by competing flows sharing the TID.
 
-\begin{theorem}[Orthogonal Delay Decomposition]
+\begin{theorem}[Buffer Reorder Accounting Decomposition]
 \label{thm:decomp}
-Let packet $i$ belong to flow $f_i$ with physical arrival time $A_i$ and assigned sequence number $s_i$. Define the intra-flow completion boundary:
+Let packet $i$ belong to flow $f_i$ with physical arrival time $A_i$ and assigned sequence number $s_i$. On an observed execution trace, define the intra-flow completion boundary:
 \begin{equation}
     R_i^{\text{intra}} \triangleq \max\left(A_i, \max_{j: f_j = f_i, s_j < s_i} A_j\right)
 \end{equation}
-Then the total reordering delay $\Delta_i = R_i - A_i$ admits an exact, non-negative, orthogonal decomposition:
+Then the total reordering delay $\Delta_i = R_i - A_i$ admits an exact, non-negative, additive decomposition:
 \begin{equation}
     \Delta_i = \mathcal{S}_i + \mathcal{X}_i
 \end{equation}
@@ -208,7 +208,7 @@ Since $R_i \ge R_i^{\text{intra}} \ge A_i$, both $\mathcal{S}_i \ge 0$ and $\mat
 \label{lem:invariance}
 On an observed trace with fixed physical arrival epochs $\{A_i\}$ and sequence numbers $\{s_i\}$, the self-blocking delay $\mathcal{S}_i$ is strictly invariant to the arrival epochs, sequence numbers, and presence of all competing flows $\mathcal{F} \setminus \{f_i\}$. 
 
-\emph{Physical Boundary Note:} This invariance is a buffer-level accounting property. In a real shared wireless medium, the physical presence of competing traffic introduces EDCA channel contention, collision-induced backoff escalation, and queuing delay, which dynamically alters $\{A_i\}$. Theorem~\ref{thm:decomp} thus serves as an exact diagnostic metric for isolating in-buffer reordering stalls from channel service time dispersion.
+\emph{Physical Boundary Note:} This invariance is an in-buffer accounting property on a realized trace. In a real shared wireless medium, the physical presence of competing traffic introduces EDCA channel contention, collision-induced backoff escalation, and queuing delay, which dynamically alters $\{A_i\}$. Theorem~\ref{thm:decomp} thus serves as an exact diagnostic metric for isolating in-buffer reordering stalls from channel service time dispersion.
 \end{lemma}
 \begin{proof}
 By definition, $R_i^{\text{intra}}$ depends exclusively on $A_i$ and the set $\{A_j : f_j = f_i, s_j < s_i\}$. Removing all frames of other flows leaves $\mathcal{P}_i^{\text{inter}} = \emptyset$, which forces $R_i = R_i^{\text{intra}}$ and $\mathcal{X}_i = 0$, while $\mathcal{S}_i$ remains unchanged.
@@ -218,20 +218,26 @@ By definition, $R_i^{\text{intra}}$ depends exclusively on $A_i$ and the set $\{
 
 We now analyze the stochastic behavior of the receiver sliding window when flows with asymmetric rates and delays share a TID under standard FIFO sequence assignment.
 
-\begin{theorem}[Sequence Divergence and Buffer Stability Bound]
+\begin{theorem}[Sequence Divergence and Buffer Stall Probability]
 \label{thm:collapse}
 Consider an MLD transmitting bulk flow $A$ on slow Link 1 ($\mu_1, \sigma_1^2$) and interactive flow $B$ on fast Link 2 ($\mu_2, \sigma_2^2$) with mean asymmetry $\delta = \mu_1 - \mu_2 > 0$ and negotiated Block Ack window $W$. Under FIFO sequencing:
 \begin{enumerate}
-    \item During the completion duration of a frame on Link 1, the sequence divergence $\Delta s$ on Link 2 has mean $\mathbb{E}[\Delta s] = \lambda_B \mu_1$ and variance $\operatorname{Var}(\Delta s) = \lambda_B \mu_1 + \lambda_B^2 \sigma_1^2$.
+    \item During the completion duration of a frame on Link 1, the sequence divergence $N$ on Link 2 has mean $\mathbb{E}[N] = \lambda_B \mu_1$. Under Poisson arrivals, $\operatorname{Var}(N) = \lambda_B \mu_1 + \lambda_B^2 \sigma_1^2$.
+    \item The mean-drift crossover boundary occurs at critical arrival rate:
+    \begin{equation}
+        \lambda^* \triangleq \frac{W}{\delta}
+    \end{equation}
+    When $\lambda_B > \lambda^*$, the mean queue drift into the reorder window is positive ($\mathbb{E}[N] > W$), causing buffer accumulation on average.
+    \item For constant completion duration $\delta$ on Link 1 and Poisson arrivals at rate $\lambda_B$ on Link 2, the exact probability that the sequence gap reaches or exceeds window capacity $W$ is:
+    \begin{align}
+        P_{\text{stall}}(\lambda_B, \delta, W) &\triangleq \Pr(N \ge W) \nonumber \\
+        &= 1 - \sum_{k=0}^{W-1} \frac{(\lambda_B \delta)^k e^{-\lambda_B \delta}}{k!}
+    \end{align}
+    For any finite $\lambda_B$, $\Pr(N < W) > 0$. At $\lambda_B = \lambda^*$, $P_{\text{stall}} \approx 0.533$ for $W=16$, with $P(N < W) \approx 0.467$.
     \item The cumulative cross-flow blocking duration per frame of flow $A$ scales quadratically as:
     \begin{equation}
-        \mathbb{E}\left[\sum_{j=1}^{\Delta s} \mathcal{X}_{B, j}\right] = \frac{1}{2} \lambda_B \delta^2
+        \int_0^{\lambda_B \delta} \left(\delta - \frac{x}{\lambda_B}\right) dx = \frac{1}{2} \lambda_B \delta^2
     \end{equation}
-    \item (Buffer Stability Condition): To prevent sequence divergence from exceeding window $W$ with probability $1 - \alpha$ under IEEE 802.11be forced-advance semantics, the arrival rate must satisfy:
-    \begin{equation}
-        \lambda_B < \lambda_{\text{crit}} \triangleq \frac{W - z_\alpha \sqrt{\operatorname{Var}(\Delta s)}}{\mu_1}
-    \end{equation}
-    where $z_\alpha = \Phi^{-1}(1 - \alpha)$. When $\lambda_B \ge \lambda^* \triangleq W / \mu_1$, the receiver buffer is saturated almost surely, triggering window stalls and forced advances.
 \end{enumerate}
 \end{theorem}
 
@@ -240,7 +246,7 @@ Frame $a$ of flow $A$ is dispatched to Link 1 at $t=0$, completing at $D_1$ with
 \begin{equation}
     \int_0^{\lambda_B \delta} \left(\delta - \frac{x}{\lambda_B}\right) dx = \lambda_B \delta^2 - \frac{\lambda_B^2 \delta^2}{2\lambda_B} = \frac{1}{2} \lambda_B \delta^2
 \end{equation}
-By the law of total expectation and variance for compounded Poisson arrivals: $\mathbb{E}[\Delta s] = \lambda_B \mu_1$, $\operatorname{Var}(\Delta s) = \lambda_B \mu_1 + \lambda_B^2 \sigma_1^2$. In standard IEEE 802.11be (§ 10.24.7), when sequence divergence exceeds $W$, $W_{\text{start}}$ force-advances. Requiring $\mathbb{P}(\Delta s \ge W) \le \alpha$ yields $\mathbb{E}[\Delta s] + z_\alpha \sigma_{\Delta s} < W$. Solving for $\lambda_B$ yields the stability condition.
+By the law of total expectation and variance for compounded Poisson arrivals: $\mathbb{E}[N] = \lambda_B \mu_1$, $\operatorname{Var}(N) = \lambda_B \mu_1 + \lambda_B^2 \sigma_1^2$. The complement probability of reaching or exceeding window capacity follows directly from the Poisson cumulative distribution function.
 \end{proof}
 
 \subsection{Optimal Predictive Sequencing Rule (SASP)}
@@ -296,32 +302,22 @@ The first two terms cancel identically! Hence:
 Because $h'(u) > 0$ strictly everywhere, $h(u)$ is strictly monotonically increasing from $-\infty$ to $+\infty$. By the Intermediate Value Theorem, $h(u) = 0$ possesses exactly one real root $u^*$.
 \end{proof}
 
-\subsection{Conditional Stochastic Uncertainty Lower Bound}
+\subsection{Symmetric-Link Causal Uncertainty Floor}
 
-\begin{theorem}[Conditional Stochastic Uncertainty Lower Bound]
+\begin{theorem}[Symmetric-Link Causal Uncertainty Floor]
 \label{thm:lower_bound}
-For any causal online scheduling policy $\pi \in \Pi$, conditional on candidate frames $a$ and $b$ being dispatched concurrently on disparate stochastic links with Gaussian completion variances $\sigma_a^2, \sigma_b^2 > 0$, the expected weighted cross-flow blocking is strictly lower-bounded by:
-\begin{multline}
-    \min\left( C(s_a < s_b), C(s_b < s_a) \right) \ge \\
-    \min(w_a, w_b) \frac{\sigma_Z}{\sqrt{2\pi}} \exp\left( -\frac{(\mu_a - \mu_b)^2}{2\sigma_Z^2} \right)
-\end{multline}
-where $\sigma_Z = \sqrt{\sigma_a^2 + \sigma_b^2}$. On symmetric links ($\mu_a = \mu_b$), this reduces to $\min(w_a, w_b) \frac{\sigma_Z}{\sqrt{2\pi}}$.
+When candidate frames $a$ and $b$ are dispatched concurrently on stochastic links with equal mean completion times ($\mu_a = \mu_b$, so $u = 0$) and non-zero Gaussian variance $\sigma_Z = \sqrt{\sigma_a^2 + \sigma_b^2} > 0$, the expected weighted cross-flow blocking cost under any binary sequence assignment decision is strictly lower-bounded by:
+\begin{equation}
+    \min\left( C(s_a < s_b), C(s_b < s_a) \right) = \min(w_a, w_b) \frac{\sigma_Z}{\sqrt{2\pi}} > 0
+\end{equation}
+For arbitrary link asymmetry $u = (\mu_a - \mu_b) / \sigma_Z$, the optimal decision cost attains its global maximum at $u = u^*$ and decays to zero as $|u| \to \infty$.
 
-\emph{Falsification Boundaries:} The bound holds strictly conditional on concurrent multi-link dispatch over stochastic channels. Under Single-Link Operation (SLO) or deterministic TDMA, frames arrive in sequential order, achieving $\mathcal{X}_i = 0$ identically.
+\emph{Falsification Boundaries:} This bound holds strictly conditional on concurrent multi-link dispatch over stochastic channels. Under Single-Link Operation (SLO) or deterministic links ($\sigma_Z = 0$), frames arrive in sequential order, achieving $\mathcal{X}_i = 0$ identically.
 \end{theorem}
 
 \begin{proof}
-For any sequencing decision $\omega \in \{s_a < s_b, s_b < s_a\}$, the cost is bounded by $\min(w_a, w_b) \min(\mathbb{E}[Z^+], \mathbb{E}[(-Z)^+])$. Applying the Gaussian lower bound $\min(\mathbb{E}[Z^+], \mathbb{E}[(-Z)^+]) \ge \sigma_Z \phi(u) = \frac{\sigma_Z}{\sqrt{2\pi}} e^{-u^2/2}$ completes the proof.
+At $u = 0$, $\phi(0) = \frac{1}{\sqrt{2\pi}}$, $\Phi(0) = \frac{1}{2}$, and $\mu_Z = 0$. Hence $\mathbb{E}[Z^+] = \mathbb{E}[(-Z)^+] = \sigma_Z \phi(0) = \frac{\sigma_Z}{\sqrt{2\pi}}$. Evaluating $C(s_a < s_b) = w_b \frac{\sigma_Z}{\sqrt{2\pi}}$ and $C(s_b < s_a) = w_a \frac{\sigma_Z}{\sqrt{2\pi}}$ gives $\min(C) = \min(w_a, w_b) \frac{\sigma_Z}{\sqrt{2\pi}}$. As $|u| \to \infty$, Mill's ratio ensures $C^*(u) \to 0$.
 \end{proof}
-
-\subsection{Theoretical Failure Modes and Counterexamples}
-To illustrate the necessity of Theorem~\ref{thm:sasp}, we analyze three common heuristic failure modes:
-
-\textbf{Counterexample 1 (Failure of Static Pinning):} Consider bulk flow $A$ pinned to 2.4~GHz ($\mu_1 = 1.0$~ms) and interactive flow $B$ pinned to 5~GHz ($\mu_2 = 0.1$~ms), sharing TID 0 under FIFO sequence numbering. When flow $B$ transmits at $\lambda_B = 10$~pkt/ms, 64 frames of flow $B$ are completed on Link 2 within 0.64~ms while frame $a_1$ ($s=1$) is still in flight on Link 1. When frame $b_{65}$ arrives, the sequence gap exceeds window $W = 64$. Link 2 throughput drops from $10$~pkt/ms to $1$~pkt/ms (a 90\% collapse), validating Theorem~\ref{thm:collapse}.
-
-\textbf{Counterexample 2 (Failure of Congestion-Aware Scheduling without Sequencing):} A congestion-aware scheduler dispatches packets to links with the smallest backlog ($Q_k / C_k$). Suppose Link 1 has high latency ($\mu_1 = 5.0$~ms) and Link 2 has low latency ($\mu_2 = 1.0$~ms). At $t = 0$, packet 1 (bulk) is dispatched to Link 1 ($s=1$). At $t = 0.1$~ms, packet 2 (gaming) arrives and is dispatched to idle Link 2 with FIFO sequence $s=2$. Packet 2 finishes at $1.1$~ms but is blocked until $5.0$~ms ($\mathcal{X}_2 = 3.9$~ms). SASP resolves this by inverting the sequence numbers ($s_{\text{gaming}} = 1, s_{\text{bulk}} = 2$), achieving $\mathcal{X}_1 = \mathcal{X}_2 = 0$.
-
-\textbf{Counterexample 3 (Failure of Mean-Only Sequencing):} Let candidate $a$ have $\mu_a = 2.0$~ms, $\sigma_a = 1.0$~ms, $w_a = 1$ (bulk), and candidate $b$ have $\mu_b = 2.3$~ms, $\sigma_b = 1.0$~ms, $w_b = 20$ (real-time control). A mean-only policy sorts by $\mu_a < \mu_b$, assigning $s_a < s_b$, incurring expected cost $C = 8.54$. In contrast, Theorem~\ref{thm:sasp} yields root $u^*(1, 20) \approx -0.85$. Since $u = (\mu_a - \mu_b)/\sigma_Z = -0.212 > u^*$, SASP dictates $s_b < s_a$, incurring cost $C = 0.73$---a \textbf{91.5\% reduction} in weighted blocking cost.
 
 \section{The SASP Scheduling Algorithm}
 \label{sec:algorithm}
@@ -363,40 +359,19 @@ Algorithm~\ref{alg:sasp} presents the complete specification of \emph{Sequence-A
 \end{algorithmic}
 \end{algorithm}
 
-\subsection{Parameter Estimation and Root Solving}
-Channel completion parameters $(\hat{\mu}_\ell, \hat{\sigma}_\ell^2)$ are updated at runtime upon receiving Block Ack frames using an Exponentially Weighted Moving Average (EWMA):
-\begin{equation}
-    \hat{\mu}_\ell \leftarrow (1-\alpha) \hat{\mu}_\ell + \alpha D_{\text{obs}}, \quad \hat{\sigma}_\ell^2 \leftarrow (1-\alpha) \hat{\sigma}_\ell^2 + \alpha (D_{\text{obs}} - \hat{\mu}_\ell)^2
-\end{equation}
-with smoothing factor $\alpha = 0.125$. The threshold root $u^*$ is solved via Newton-Raphson iteration:
-\begin{equation}
-    u_{m+1} = u_m - \frac{h(u_m)}{h'(u_m)}
-\end{equation}
-Since $h'(u) > 0$ strictly everywhere (Theorem~\ref{thm:sasp}), convergence is quadratic, requiring at most 3 to 4 iterations to achieve $|h(u)| < 10^{-6}$.
+\subsection{Parameter Estimation and Complexity}
+Channel completion parameters $(\hat{\mu}_\ell, \hat{\sigma}_\ell^2)$ are updated at runtime upon receiving Block Ack frames using an Exponentially Weighted Moving Average (EWMA) with smoothing factor $\alpha = 0.125$. The threshold root $u^*$ converges in $\le 4$ Newton-Raphson steps.
 
-\subsection{Complexity and Practical Driver Integration}
 \begin{itemize}
-    \item \textbf{Computational Complexity:} $\mathcal{O}(M \cdot K \cdot |\mathcal{O}|) \le \mathcal{O}(M \cdot K \cdot W)$. For a 3-link MLD with 4 flows and $W = 64$, at most 768 operations are performed per scheduling epoch, executing in $\le 15.3\,\mu\text{s}$ in Python (and typically $2-4\,\mu\text{s}$ for typical 2--4 link setups).
+    \item \textbf{Computational Complexity:} $\mathcal{O}(M \cdot K \cdot |\mathcal{O}|) \le \mathcal{O}(M \cdot K \cdot W)$. Decision execution time profiles between $1.3\,\mu\text{s}$ and $4.0\,\mu\text{s}$ for typical 2--3 link topologies in Python (reaching $16.3\,\mu\text{s}$ under an extreme 8-flow/2-link stress topology).
     \item \textbf{Memory Footprint:} $\mathcal{O}(W + K) < 8$~KB, fitting entirely within L1 cache.
-    \item \textbf{Linux mac80211 Integration:} SASP integrates directly into the Linux wireless subsystem within \texttt{net/mac80211/tx.c}, replacing the legacy FIFO dequeue loop before dispatching \texttt{sk\_buff} structures to driver ring buffers.
 \end{itemize}
 
 \section{Performance Evaluation}
 \label{sec:eval}
 
 \subsection{Experimental Setup}
-We implement a discrete-event simulation engine in Python modeling IEEE 802.11be multi-link operations, EDCA contention engines, multi-rate PHY modes, Gilbert-Elliott channel errors, sliding BA windows, and orthogonal delay decomposition. We benchmark SASP against eight baselines:
-\begin{enumerate}
-    \item \textbf{Single-Link (SLO):} Constrains traffic to the primary link.
-    \item \textbf{Default FIFO MLO:} Greedily dispatches to any idle link with FIFO sequencing.
-    \item \textbf{Round-Robin (RR):} Dispatches packets alternately across links.
-    \item \textbf{Lowest-Latency-First (LLF):} Steers frames to the link with lowest mean delay.
-    \item \textbf{Congestion-Aware (CALA):} Dispatches based on queue backlog ratios.
-    \item \textbf{Static Pinning:} Pins flows statically to dedicated links.
-    \item \textbf{Retransmit Steering (WARS):} Steers retransmitted frames to fast links.
-    \item \textbf{Offline Oracle:} A posteriori optimal arrival-sorted lower bound.
-\end{enumerate}
-All reported data points represent the mean across 30 independent random seeds, with 95\% Student-t confidence intervals.
+We implement a discrete-event simulation engine in Python modeling IEEE 802.11be multi-link operations, EDCA contention engines, multi-rate PHY modes, Gilbert-Elliott channel errors, sliding BA windows, and orthogonal delay decomposition. We benchmark SASP against eight baselines: Single-Link (SLO), Default FIFO MLO, Round-Robin (RR), Lowest-Latency-First (LLF), Congestion-Aware (CALA), Static Pinning, Retransmission Steering (WARS), and an Offline Non-Causal Oracle. All reported data points represent the mean across 30 independent random seeds, with 95\% Student-t confidence intervals.
 
 \begin{figure}[t]
     \centering
@@ -413,10 +388,10 @@ All reported data points represent the mean across 30 independent random seeds, 
 \end{figure}
 
 \subsection{EXP-01: Delay Asymmetry Sweep}
-Fig.~\ref{fig:asymmetry} evaluates mean cross-flow blocking $\mathbb{E}[\mathcal{X}]$ as link asymmetry $\delta = \mu_1 - \mu_2$ is swept from 0.2~ms to 5.0~ms. Under Single-Link Operation (SLO), cross-flow blocking is identically 0.000~ms. Under Static Pinning, cross-flow blocking escalates severely from 0.064~ms to 1.765~ms ($\pm 0.040$~ms), causing p99 latency to swell beyond 240~ms due to link starvation. Under Default FIFO, cross-blocking increases from 0.024~ms to 0.891~ms ($\pm 0.042$~ms). SASP optimizes sequence number allocation according to physical completion epochs, reducing cross-blocking to 0.141~ms at $\delta = 1.5$~ms (a \textbf{17.7\% reduction}) and to 0.747~ms at $\delta = 5.0$~ms (a \textbf{16.1\% reduction}) while preserving full link goodput (9.55~Mbps).
+Fig.~\ref{fig:asymmetry} evaluates mean cross-flow blocking $\mathbb{E}[\mathcal{X}]$ as link asymmetry $\delta = \mu_1 - \mu_2$ is swept from 0.2~ms to 5.0~ms. Under Single-Link Operation (SLO), cross-flow blocking is identically 0.000~ms. Under Static Pinning, cross-flow blocking escalates severely from 0.064~ms to 1.765~ms, causing p99 latency to swell beyond 240~ms due to link starvation. Under Default FIFO, cross-blocking increases from 0.024~ms to 0.891~ms. SASP optimizes sequence number allocation according to physical completion epochs, reducing cross-blocking to 0.141~ms at $\delta = 1.5$~ms (a \textbf{17.7\% reduction}) and to 0.747~ms at $\delta = 5.0$~ms (a \textbf{16.1\% reduction}) while preserving full link goodput (9.55~Mbps).
 
 \subsection{EXP-02: Multi-Link BA Window Stall Collapse}
-Fig.~\ref{fig:collapse} validates Theorem~\ref{thm:collapse}. When normalized arrival load $\lambda / \lambda^*$ sweeps from 0.2 to 2.0 ($W = 16, \mu_{\text{slow}} = 8.0$~ms), the 99th percentile latency surges from 11.40~ms to 190.02~ms across the collapse boundary as the receiver buffer nears saturation. Crucially, SASP reduces cross-flow blocking by \textbf{71.2\% at normalized load 1.0} (from 0.981~ms to 0.283~ms) and by \textbf{90.2\% at load 1.2} (from 0.887~ms to 0.087~ms), suppressing buffer stalls without sacrificing goodput (13.65~Mbps).
+Fig.~\ref{fig:collapse} validates Theorem~\ref{thm:collapse}. When normalized arrival load $\lambda / \lambda^*$ sweeps from 0.2 to 2.0 ($W = 16, \mu_{\text{slow}} = 8.0$~ms), the 99th percentile latency surges from 11.40~ms to 190.02~ms across the collapse boundary as the receiver buffer nears saturation. Crucially, SASP reduces cross-flow blocking by \textbf{71.2\% at normalized load 1.0} (from 0.981~ms to 0.283~ms) and by \textbf{96.8\% at load 1.5} (from 0.737~ms to 0.024~ms), reducing p99 latency by 24.5\% (from 133.1~ms to 100.5~ms) without sacrificing goodput.
 
 \begin{figure}[t]
     \centering
@@ -433,10 +408,10 @@ Fig.~\ref{fig:collapse} validates Theorem~\ref{thm:collapse}. When normalized ar
 \end{figure}
 
 \subsection{EXP-03: Priority Heterogeneity}
-Fig.~\ref{fig:priority} evaluates priority weight ratios $w_{\text{inter}} / w_{\text{bulk}} \in [1, 50]$. As priority asymmetry widens, Theorem~\ref{thm:sasp}'s threshold root $u^*$ shifts into the negative domain ($u^* \le -0.85$). This systematically shields the interactive flow from bulk reorder delays, reducing weighted cross-flow blocking cost by \textbf{16.5\%} at ratio 10 (from 1.4241 to 1.1885) and by \textbf{16.5\%} at ratio 50 (from 6.6431 to 5.5491) while maintaining full goodput.
+Fig.~\ref{fig:priority} evaluates priority weight ratios $w_{\text{inter}} / w_{\text{bulk}} \in [1, 50]$. As priority asymmetry widens, Theorem~\ref{thm:sasp}'s threshold root $u^*$ shifts into the negative domain ($u^* \le -0.85$). This systematically shields the interactive flow from bulk reorder delays, reducing weighted cross-flow blocking cost by \textbf{16.5\%} at ratio 10 (from 1.4241 to 1.1885) and by \textbf{16.5\%} at ratio 50 (from 6.6431 to 5.5491).
 
 \subsection{EXP-04: Contention and Burst Frame Loss}
-Fig.~\ref{fig:loss} sweeps frame error rates up to 25\% under two-state Gilbert-Elliott channel fading. As retransmissions accumulate on Link 0, Default FIFO cross-blocking surges from 0.214~ms to 0.960~ms ($\pm 0.098$~ms). SASP limits cross-blocking to 0.311~ms at 10\% FER (\textbf{19.8\% reduction}) and to 0.613~ms at 25\% FER (\textbf{36.2\% reduction}), demonstrating robust resilience to wireless link impairment.
+Fig.~\ref{fig:loss} sweeps frame error rates up to 25\% under two-state Gilbert-Elliott channel fading. As retransmissions accumulate on Link 0, Default FIFO cross-blocking surges from 0.214~ms to 0.960~ms. SASP limits cross-blocking to 0.311~ms at 10\% FER (\textbf{19.8\% reduction}) and to 0.613~ms at 25\% FER (\textbf{36.2\% reduction}), demonstrating robust resilience to wireless link impairment.
 
 \begin{figure}[t]
     \centering
@@ -453,9 +428,9 @@ Fig.~\ref{fig:loss} sweeps frame error rates up to 25\% under two-state Gilbert-
 \end{figure}
 
 \subsection{EXP-05 \& EXP-06: Scalability and Robustness}
-EXP-05 confirms that SASP scales gracefully across topologies up to 4 radio links and 8 flows, with measured decision overhead ranging between $1.23\,\mu\text{s}$ and $15.30\,\mu\text{s}$ (typically $2-4\,\mu\text{s}$ for 2--4 link setups). Fig.~\ref{fig:robustness} evaluates sensitivity to variance estimation errors $\epsilon_\sigma \in [-50\%, +50\%]$. Even under $\pm 50\%$ variance bias, SASP stably maintains an \textbf{18.2\% relative advantage} over FIFO (0.2044~ms vs. 0.2499~ms), confirming the smooth mathematical profile of the underlying Gaussian integral.
+EXP-05 confirms that SASP scales across topologies up to 4 radio links and 8 flows, with measured decision overhead ranging between $1.27\,\mu\text{s}$ and $16.26\,\mu\text{s}$ in Python ($1.3-4.0\,\mu\text{s}$ typically). Fig.~\ref{fig:robustness} evaluates sensitivity to variance estimation errors $\epsilon_\sigma \in [-50\%, +50\%]$. Even under $\pm 50\%$ variance bias, SASP stably maintains an \textbf{18.2\% relative advantage} over FIFO (0.2044~ms vs. 0.2499~ms) because the mean asymmetry $\Delta\mu = 2.0$~ms dominates link variance $\sigma \approx 0.1$~ms by over an order of magnitude, preserving optimal sequence decisions unconditionally.
 
-\subsection{EXP-07: Component Ablation Breakdown}
+\subsection{EXP-07 \& Targeted Priority Ablation}
 Fig.~\ref{fig:ablation} isolates the contribution of each algorithmic component:
 \begin{itemize}
     \item \emph{Default FIFO Baseline:} Cross-blocking = 0.3411~ms, weighted cost = 1.8845.
@@ -463,21 +438,33 @@ Fig.~\ref{fig:ablation} isolates the contribution of each algorithmic component:
     \item \emph{Mean-Only Sequencing:} Cross-blocking = 0.2816~ms, weighted cost = 1.5000 (20.4\% cost reduction).
     \item \emph{Full SASP (Theorem 3 Threshold Engine):} Cross-blocking = 0.2811~ms, weighted cost = 1.4988 (\textbf{20.5\% cost reduction}).
 \end{itemize}
-This ablation demonstrates that sequence-number ordering is the primary causal lever for mitigating CF-HOL stalls, with Theorem~\ref{thm:sasp}'s variance and weight thresholding optimizing priority protection.
+A dedicated 2,160-run paired ablation campaign reveals that while predictive sequencing itself drives the broad performance leap over FIFO across all regimes (up to 78.1\% cost reduction), the Theorem~\ref{thm:sasp} threshold root $u^*$ provides a statistically significant \textbf{3.5\% to 4.9\% reduction ($p < 0.05$)} over Mean-Only Sequencing in the specific operating regime of \textbf{high priority asymmetry ($w \in [5, 50]$) with near-equal link means ($\Delta\mu \le 0.2$~ms)}.
 
-\section{Discussion and Practical Considerations}
+\section{Discussion and Threats to Validity}
 \label{sec:discussion}
 
 \subsection{Standards Compliance and Firmware Deployment}
 SASP requires zero modifications to receiver hardware or protocol stacks. Transmitted frames adhere to IEEE 802.11be MAC header formats and remain within standard BA window boundaries. Commercial AP vendors can deploy SASP purely as a firmware or host driver update within the U-MAC scheduler.
 
 \subsection{Threats to Validity}
-While our discrete-event simulator faithfully models EDCA backoff, CWmin/CWmax, SIFS, and sliding BA bitmaps, physical implementations may encounter RF non-linearities, channel sounding latency, and hardware queuing delays. Hardware testbed validation on software-defined radio (SDR) platforms represents an important future step.
+To uphold scientific rigor, we explicitly disclose the methodological limitations of this study:
+\begin{enumerate}
+    \item \emph{Custom Discrete-Event Simulator:} Experiments were conducted in a custom Python discrete-event simulation package rather than an established network simulator like ns-3 or Omnet++. While verified by 39 unit and property tests, absolute latency numbers should be viewed as indicative.
+    \item \emph{Absence of Physical Hardware Measurements:} Experiments reflect simulated radio channels rather than commercial Wi-Fi 7 silicon (e.g., Qualcomm FastConnect 7800 or Intel BE200). Proprietary firmware in existing chipsets currently prevents custom sequence assignment.
+    \item \emph{Gaussian Service-Time Approximation:} Link completion times are modeled with Gaussian distributions. Under severe multipath fading or heavy retry escalation, completion times exhibit discrete multimodal tails.
+    \item \emph{Link Independence Assumption:} We assume orthogonal frequency bands with negligible in-device cross-talk. Under Non-STR (NSTR) operation, channel switching and self-interference introduce coupling.
+    \item \emph{Traffic Model Characteristics:} Background and interactive flows were modeled with Poisson and periodic packet arrivals. Real application workloads exhibit burstiness that may intensify buffer pressure.
+    \item \emph{BA Window Advance Realism:} Forced window advances follow standard IEEE 802.11be rules, but real vendor chipsets may implement proprietary advance heuristics.
+    \item \emph{Baseline Scope:} We benchmarked against eight representative algorithms, but proprietary vendor schedulers may incorporate undisclosed cross-layer heuristics.
+    \item \emph{Platform Profiling vs. Silicon Timing:} Decision overhead was measured in interpreted Python. Real embedded AP SoCs running compiled C/microcode are expected to achieve significantly lower overhead.
+    \item \emph{TID vs. Flow Identity:} SASP assumes the transmitter can distinguish flow weights within TID 0. In Linux, this relies on internal \texttt{sk\_buff} priority markings or DSCP inspection at the AP.
+    \item \emph{Patent Positioning Disclaimer:} Our literature and patent audit represents an engineering comparison to highlight technical novelty and does not constitute a formal legal opinion on freedom to operate.
+\end{enumerate}
 
 \section{Conclusion}
 \label{sec:conclusion}
 
-In this paper, we investigated Cross-Flow Head-of-Line (CF-HOL) blocking in Wi-Fi 7 Multi-Link Operation. We proved an orthogonal delay decomposition theorem ($\Delta_i = \mathcal{S}_i + \mathcal{X}_i$), derived the Multi-Link Sequence Divergence and Buffer Stability Bound ($\lambda_2 < (W - z_\alpha \sigma_{\Delta s}) / \mu_1$), and proved the optimal pairwise threshold root rule $u^*(w_a, w_b)$ alongside a conditional stochastic lower bound. Guided by these theoretical findings, we designed SASP, a transmitter Upper MAC scheduling algorithm that reduces cross-flow blocking by 16.1\%--17.7\% across link asymmetry sweeps, up to 90.2\% under near-saturation buffer loads, and 36.2\% under frame loss, without modifying receiver semantics.
+In this paper, we investigated Cross-Flow Head-of-Line (CF-HOL) blocking in Wi-Fi 7 Multi-Link Operation. We proved an orthogonal delay decomposition theorem ($\Delta_i = \mathcal{S}_i + \mathcal{X}_i$), characterized the Multi-Link Sequence Divergence model with exact Poisson stall probability, derived the optimal pairwise threshold root rule $u^*(w_a, w_b)$, and proved the symmetric-link causal uncertainty floor. Guided by these theoretical findings, we designed SASP, a transmitter Upper MAC scheduling algorithm that reduces cross-flow blocking by 16.1\%--17.7\% across link asymmetry sweeps, up to 96.8\% under buffer loads, and 36.2\% under frame loss, without modifying receiver semantics.
 
 \bibliographystyle{IEEEtran}
 \bibliography{references}
