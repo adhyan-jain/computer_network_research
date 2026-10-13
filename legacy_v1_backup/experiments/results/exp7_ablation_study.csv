@@ -1,0 +1,5 @@
+variant,mean_cross_blocking_ms,ci_cross,weighted_cost,ci_weighted,interactive_p95_ms,interactive_p99_ms
+1_DefaultFIFO,0.1456,0.0223,0.8286,0.1563,3.9530,4.6259
+2_DispatchOnly,0.1456,0.0223,0.8286,0.1563,3.9530,4.6259
+3_MeanOnlySequencing,0.1429,0.0214,0.8040,0.1520,3.9548,4.6714
+4_FullSASP,0.1429,0.0214,0.8040,0.1520,3.9548,4.6714
