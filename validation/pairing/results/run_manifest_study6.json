@@ -1,0 +1,10 @@
+{
+ "n_errors": 0,
+ "errors": [],
+ "seconds": 3207.2,
+ "n_jobs": 1120,
+ "n_g4": 900,
+ "n_ns3": 160,
+ "n_d2": 60,
+ "prereg_sha256": "8ccbee5936ea7de70d4327d3c278d54094a71a6f807bcb25961014dc6572c94c"
+}
