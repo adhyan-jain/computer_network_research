@@ -13,6 +13,7 @@ In a shared reorder buffer a packet's cross-flow blocking is the maximum "latene
 | `AUDIT_REPORT.md` | Full audit: integrity checks, independent recomputation, failures, remaining gaps |
 | `decisions.md` | Log of every major decision (D01-D33) |
 | `NOVELTY_SUMMARY.md` | One-page novelty and limits summary for presentation |
+| `PRESENTATION_GUIDE.pdf` | How to explain it: 30-second pitch, board example, talk outlines, demo, likely questions |
 
 ## Studies (each preregistered, hashed, committed before its data)
 | Study | Preregistration | Runner / analysis | Results |
