@@ -1,0 +1,11 @@
+{
+ "label": "POST HOC, not preregistered",
+ "P6": {
+  "max_abs_z_refined": 1.2089300765985596,
+  "max_rel_change_80k_vs_320k": 0.0002625164725186219
+ },
+ "P7": {
+  "max_abs_z_refined": 2.6921382329740586,
+  "max_rel_change_80k_vs_320k": 4.3051274540511215e-07
+ }
+}
