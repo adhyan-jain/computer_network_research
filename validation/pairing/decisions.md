@@ -60,3 +60,16 @@ Append-only. Each entry: what was decided, why, what it changes. Dates are 2026-
 
 ## D13 Amendment 2 written before any confirmatory run
 - Records the pilot, closes the gaps in D09, adds exploratory E1 (fer sweep: where does shared-RNG coupling break).
+
+## D14 Confirmatory pass executed once (seeds 7000-7099, 0 errors); hashes frozen in results/RAW_AND_ANALYSIS.sha256
+- Outcomes: H1 NOT supported, H2 NOT material, H3 NOT confirmed, H4 confirmed, H5 confirmed, H6 pass (but release-level test blind to local lookahead).
+- Decision: report the refutations as results. Do not redefine H1-H3 to rescue them.
+- Decision: H2 "material" rule read conservatively (all three arms must satisfy); moot because none does.
+
+## D15 Paper reframing after the results
+- The defensible novelty is no longer "we fixed pairing". It is: a preregistered, oracle-based audit of a simulator and its evaluation protocol in which two invariants hold (pairing, completeness), two fail (loss-draw spec, attribution scope), and one passes with a documented blind spot (causality). Plus a cross-simulator contrast (pairing strength differs between Python and ns-3) if the exploratory re-analysis supports it.
+- Why: negative/mixed audit results with exact oracles and controls are honest and checkable; inflating H1-H3 would not survive review.
+
+## D16 Exploratory plan declared before exploratory runs (EXPLORATORY_PLAN.md); study.py got an optional delta_mu parameter after the confirmatory pass
+- Safety check done: 88 tests pass and three confirmatory rows were recomputed bit-identically (M and delivered).
+- Fresh seeds only (9000-9099, 10000-10999). Exploratory results are labelled exploratory in the paper.

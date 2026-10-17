@@ -184,16 +184,16 @@ SCALES = {
 }
 
 
-def build(scale, fer=0.01, burst_prob=0.0, burst_recovery=0.5, drop_flow_ids=()):
+def build(scale, fer=0.01, burst_prob=0.0, burst_recovery=0.5, drop_flow_ids=(), delta_mu=0.1):
     flows = [Flow(flow_id=i + 1, name=f"F{i + 1}", weight=w, rate_pkts_per_sec=r)
              for i, (w, r) in enumerate(SCALES[scale]) if (i + 1) not in drop_flow_ids]
     links = [Link(link_id=0, name="L0", bandwidth_mbps=20.0, base_delay_ms=1.0),
-             Link(link_id=1, name="L1", bandwidth_mbps=20.0, base_delay_ms=1.1)]
+             Link(link_id=1, name="L1", bandwidth_mbps=20.0, base_delay_ms=1.0 + delta_mu)]
     for l in links:
         l.contention_sigma_ms = 0.1
     chans = [WirelessChannel(bandwidth_mbps=20.0, base_propagation_ms=b, fer=fer,
                              burst_prob=burst_prob, burst_recovery=burst_recovery)
-             for b in (1.0, 1.1)]
+             for b in (1.0, 1.0 + delta_mu)]
     return flows, links, chans
 
 
@@ -277,8 +277,9 @@ def make_sched(arm, trace=None):
 
 
 def simulate(scale, design, arm, seed, duration=DURATION_MS, fer=0.01, burst_prob=0.0, burst_recovery=0.5,
-             single_draw=False, arrival_horizon=None, stop=None, drain=False, drop_flow_ids=(), trace_horizon=None):
-    flows, links, chans = build(scale, fer, burst_prob, burst_recovery, drop_flow_ids)
+             single_draw=False, arrival_horizon=None, stop=None, drain=False, drop_flow_ids=(), trace_horizon=None,
+             delta_mu=0.1):
+    flows, links, chans = build(scale, fer, burst_prob, burst_recovery, drop_flow_ids, delta_mu)
     trace = None
     if arm.startswith("Leaky"):
         trace = arrival_trace(seed, flows, trace_horizon if trace_horizon is not None else duration)
