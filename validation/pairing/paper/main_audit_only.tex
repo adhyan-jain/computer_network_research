@@ -1,0 +1,191 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{booktabs,amsmath,amssymb,graphicx,url,array,longtable,xcolor}
+\usepackage[colorlinks=true,linkcolor=blue!50!black,citecolor=blue!50!black,urlcolor=blue!50!black]{hyperref}
+\input{numbers.tex}
+\newcommand{\tagC}{\textsc{conf}}
+\newcommand{\tagE}{\textsc{expl}}
+\newcommand{\tagP}{\textsc{pre-existing}}
+\newcommand{\tagA}{\textsc{analytic}}
+
+\title{How Far Can We Trust Paired-Seed Comparisons in Multi-Link Wi-Fi Simulation?\\
+A Preregistered Oracle Audit of a Reordering Simulator}
+\author{[Authors to be completed by the submitting authors]}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Simulation studies of Wi-Fi~7 multi-link operation (MLO) routinely compare schedulers with seed-paired runs and report small gains.
+We ask whether the implicit invariants behind such comparisons actually hold in a simulator and its evaluation protocol.
+We preregistered six hypotheses (hash-committed before any confirmatory run), built exact label-free oracles with controls that must read zero where zero is guaranteed, and ran them on 100 fresh seeds at three scales.
+Three preregistered hypotheses were \emph{not} supported: the shared random stream did not desynchronise arrivals across schedulers (\OneMismatchShared{} cell mismatches), keyed counterfactual noise did not tighten paired confidence intervals (width ratio \WidthRatioTwo{} at the primary scale), and survivor bias in delivered-only delay was immaterial (\UndelFracFIFO{} undelivered, below the \UndelThreshold{} threshold).
+Two were confirmed: removing a competing flow changes a flow's self-blocking by \HFourRatioFIFO{} (\HFourRatioFIFOCI{}), so the claimed attribution invariance holds only on a fixed trace; and every transmission attempt consumes two loss draws instead of one (\OFiveRate{}), which shortens loss bursts by \BurstRelAbs{} and, in an exploratory run, changes absolute weighted blocking by more than a factor of two while leaving the relative scheduler ranking intact. The causality check passed for all real schedulers, with a documented blind spot to short look-ahead.
+Exploratory follow-ups show that across-seed pairing strength falls from \XOneRhoLow{} to \XOneRhoHigh{} as links become asymmetric under \emph{both} shared and keyed random streams, and spans \XFiveRhoMin{} to \XFiveRhoMax{} across ns-3 cells, so weak pairing is a property of the dynamics and not of the random-number design.
+A 1000-seed estimate of the scheduler's gain in the audited scenario is \XFourDShared{} (\XFourCIShared{}), versus \OldD{} (\OldDCI{}) from the earlier 30-seed campaign.
+We provide the oracle battery, the controls, and a reporting checklist.
+\end{abstract}
+
+\section{Introduction}
+Evaluating a packet scheduler by simulation usually means running two policies on the same seeds and testing the paired difference.
+That practice quietly relies on invariants that are rarely checked: that the arms face the same exogenous traffic, that the reported metric covers every generated packet, that the random-number consumption matches the protocol specification, and that the policy cannot see the future.
+Credibility problems of this kind are well documented for network simulation in general~\cite{kurkowski2005manet}; here we test them \emph{exactly}, in one concrete system, with controls.
+
+The system is a discrete-event model of IEEE~802.11be MLO~\cite{ieee80211be2024} in which several flows share one Block-Ack reorder buffer, so a slow link can block packets of unrelated flows.
+MLO scheduling and its anomalies are an active topic~\cite{lopezraventos2022mlo,carrascosa2023understanding}.
+The audited repository also contains a scheduler (SASP) whose gain over FIFO had been reported from 30 seeds, which gives the audit a consequential worked example.
+
+\paragraph{Contributions, ranked by strength of evidence.}
+\begin{enumerate}
+  \item \textbf{Pairing strength is a property of the dynamics, not of the random-number design.} Preregistered tests found no arrival desynchronisation and no benefit from keyed counterfactual noise~(\tagC). Exploratory sweeps show that across-seed correlation between arms falls toward zero with link asymmetry under both designs, and that pre-existing ns-3 runs show weak or negative pairing at higher load (from \XFiveRhoMax{} down to \XFiveRhoMin{}) although offered traffic was identical in \XFiveIdentical{} of \XFiveTriples{} triples~(\tagE{}, \tagP{}). We recommend reporting this correlation next to every paired test.
+  \item \textbf{Small-sample effect sizes were imprecise.} In the audited scenario the 30-seed campaign gave \OldD{} (\OldDCI{}), \OldRatio{}$\times$ the 1000-seed estimate \XFourDShared{} (\XFourCIShared{}); the intervals overlap, so this is imprecision, not an error~(\tagE{}, \tagP{}).
+  \item \textbf{A specification-conformance defect with a large effect on absolute numbers.} Two loss draws per attempt~(\tagC{}); an exploratory run shows its effect on weighted blocking under bursty loss~(\tagE{}).
+  \item \textbf{An attribution claim holds only at trace level.} Self-blocking is unchanged when a flow's records are deleted from a trace (control: exactly zero), but changes when the flow is removed from the system~(\tagC{}).
+  \item \textbf{An oracle battery with built-in blind-spot detection.} Truncate-and-rebuild causality testing passes for all real schedulers, but a release-level comparison cannot see a local one-millisecond look-ahead (\HSixLeakyLocal{}); a decision-level comparison can partly (\XThreeLeakyLocal{}, \tagE{}).
+\end{enumerate}
+
+\paragraph{What we do not claim.} We do not claim that SASP is superior or inferior in general; that the keyed design is useful in this simulator; that any result transfers to real Wi-Fi~7 hardware; or that the simulator is wrong in other respects.
+No human annotation and no model-based judge were used, and none is claimed.
+The study covers one simulator in depth; the ns-3 material is a re-analysis of pre-existing runs, not new ns-3 experiments.
+
+\section{Related work and positioning}
+We searched for work that audits simulation-evaluation invariants for MLO reordering. Our search was not exhaustive; claims below are \emph{to our knowledge}.
+\begin{itemize}
+  \item Kurkowski et al.~\cite{kurkowski2005manet} surveyed mobile ad hoc network simulation papers and found credibility shortfalls. We share the goal but test invariants of one system with executable oracles instead of surveying papers.
+  \item Glasserman and Yao~\cite{glasserman1992crn} give conditions under which common random numbers reduce variance in discrete-event comparisons. Our keyed design is an instance; our contribution is a measurement showing the benefit can be absent when scheduler-induced trajectory divergence dominates.
+  \item Oberst and Sontag~\cite{oberst2019counterfactual} build counterfactual trajectories with fixed exogenous noise for reinforcement learning. We transplant the idea (per-packet noise keyed by flow, index and attempt) to a network scheduler comparison.
+  \item Chen et al.~\cite{chen2018metamorphic} review metamorphic testing. Our removal-of-a-flow and truncate-and-rebuild oracles are metamorphic relations; to our knowledge they have not been applied to MLO reordering simulators.
+  \item Kaplan and Meier~\cite{kaplan1958nonparametric} introduced estimation under right-censoring. We use right-censored delay for packets still in flight at the horizon.
+  \item L{\'o}pez-Ravent{\'o}s and Bellalta~\cite{lopezraventos2022mlo} and Carrascosa-Zamacois et al.~\cite{carrascosa2023understanding} study MLO traffic allocation and delay anomalies. They evaluate MLO behaviour; we evaluate the evaluation.
+  \item The ns-3 Wi-Fi module added MLO in version 3.38 (STR mode)~\cite{ns3wifi2024}; we reuse a patched ns-3.47 build only for pre-existing runs.
+\end{itemize}
+Reference entries inherited from earlier project notes that we could not verify against a source during this study were deliberately left out.
+
+\section{System under test and invariants}
+The simulator (\texttt{src/mlo\_sim}) models Poisson flows, two links with EDCA-style backoff and frame errors, a 64-entry Block-Ack window, and a receiver that releases packets in sequence-number order.
+Each released packet's reordering delay $\Delta_i$ is split into self-blocking $S_i$ and cross-blocking $X_i$; the weighted mean of $X_i$ is the headline metric $M$.
+Five implicit invariants were written down before running anything:
+\begin{description}
+  \item[I1 pairing] arms run on the same seed face the same exogenous traffic;
+  \item[I2 completeness] delay metrics cover every generated packet;
+  \item[I3 loss draw] each attempt consumes exactly one loss draw;
+  \item[I4 attribution] a flow's self-blocking does not depend on other flows;
+  \item[I5 causality] a decision at time $T$ does not depend on events after $T$.
+\end{description}
+Reading the code also showed that the class named \texttt{OracleScheduler} uses no future information (it picks the highest-weight queue), so it cannot serve as a causality control; we replaced it by two purpose-built leaking schedulers (Amendment~1).
+
+\section{Method}
+\paragraph{Preregistration.} Hypotheses H1--H6, measures, thresholds, seeds (7000--7099), and the single-pass stopping rule were written and hashed before any confirmatory run; two amendments were also made before any such run (Section~\ref{sec:repro}). Anything run afterwards is labelled exploratory.
+
+\paragraph{Designs.} \textbf{D0} is the shipped simulator (one shared random stream). \textbf{D1} gives each flow its own arrival stream (the naive fix). \textbf{D2} also keys every channel draw by (seed, flow, per-flow index, attempt, purpose), so a packet sees identical noise whichever scheduler serves it. D0 reproduced the unmodified simulator field for field on 45 test runs; the harness has 88 tests, and two propositions were property-tested on 500 random scenarios (arrival coupling under D1/D2, and that right-censored delay is a pointwise lower bound on drained delay and nondecreasing in the horizon).
+
+\paragraph{Oracles and controls.} Each oracle has a control that removes exactly one cause and a validity check that must read zero where zero is guaranteed: identical arrival signatures under D1/D2 (O1); zero undelivered packets with loss-free drained runs (H2); self-blocking recomputed from the trace without the competing flow (H4); one draw per attempt in a single-draw variant (H5); a deliberately leaking scheduler that the causality test must catch (H6).
+
+\paragraph{Statistics.} The cluster unit is the seed. Intervals are percentile bootstraps (10{,}000 resamples, fixed generator seed); pooled packet-level quantities are recomputed within each resample. $p$-values come from a paired sign-flip randomisation test because no statistics library was available. All numbers in this paper are generated from stored result files by \texttt{make\_numbers.py}.
+
+\section{Confirmatory results (seeds 7000--7099)}
+\begin{table}[h]
+\centering\small
+\begin{tabular}{p{0.06\linewidth}p{0.5\linewidth}p{0.3\linewidth}}
+\toprule
+ & Primary measure (primary scale) & Outcome \\
+\midrule
+H1 & $\Delta\rho=\rho_{\rm keyed}-\rho_{\rm shared}=\DeltaRhoTwo$ \DeltaRhoTwoCI; arrival mismatches \OneMismatchShared{} & \HOneVerdictTwo{} (scales 4/8: \HOneVerdictFour{}/\HOneVerdictEight{}) \\
+H2 & undelivered fraction \UndelFracFIFO{} \UndelFracFIFOCI{} (threshold \UndelThreshold) & \HTwoVerdict{} \\
+H3 & paired-CI width ratio keyed/shared \WidthRatioTwo{} (scales 4/8: \WidthRatioFour{}/\WidthRatioEight) & \HThreeVerdictTwo{} \\
+H4 & $|\Delta S_1|/S_1=\HFourRatioFIFO$ \HFourRatioFIFOCI{}; trace control max diff \HFourTrace{} & violation \HFourVerdict{} \\
+H5 & loss draws/attempt $\neq1$ in \OFiveRate{}; burst run length \BurstShipped{} vs \BurstSingle{} (\BurstRel, \BurstRelCI) & \HFiveVerdict{} \\
+H6 & violating seeds: FIFO \HSixFIFO{}, FullSASP \HSixFullSASP{}, MeanOnly \HSixMeanOnly{}; global-leak control caught \HSixLeakyGlobal{} & \HSixVerdict{} \\
+\bottomrule
+\end{tabular}
+\caption{Preregistered outcomes (\tagC). Thresholds are those fixed before the run.}
+\end{table}
+
+\paragraph{H1: pairing.} Under the shipped design the three arms saw arrival mismatches in \OneMismatchShared{} (seed, arm pair, scale) cells (D1/D2 are identical by construction). Across-seed correlation of $M$ between FIFO and FullSASP at the primary scale was \RhoTwoShared{} (shared, \RhoTwoSharedCI), \RhoTwoNaive{} (naive) and \RhoTwoKeyed{} (keyed); the keyed-minus-shared difference was \DeltaRhoTwo{} \DeltaRhoTwoCI, below the preregistered 0.30. The variance reduction factor was \VRFTwo{} \VRFTwoCI. An unplanned explanation, offered post hoc and untested, is that every attempt consumes a fixed number of draws, so work-conserving schedulers keep the stream position aligned. An oracle positive control (two shared-stream runs with different loss rates) confirmed that O1 can detect a mismatch.
+
+\paragraph{H2: survivor bias.} About \GenPerRun{} packets were generated per run. The undelivered fraction (\UndelFracFIFO{} for FIFO, \UndelFracFullSASP{} for FullSASP) came from packets in flight at the horizon: drained runs left \DrainUndelFerOne{} undelivered per run, silent late discards were \LateDiscards{} per run, and retry drops \RetryDrops{} per run. Right-censoring made the mean delay slightly \emph{lower} (relative change \UnderUFIFO{} for FIFO), because the censored packets are the youngest; the expected direction of the bias did not appear. The loss-free drain control passed (\DrainValid{}, \DrainRows{} runs).
+
+\paragraph{H3: consequence for the comparison.} Using the keyed design did not narrow the paired interval (width ratio \WidthRatioTwo{} at the primary scale). The point estimate of the SASP minus FIFO difference was \MeanDTwoShared{} (\MeanDTwoSharedCI, $p=\PValTwoShared$) under D0, \MeanDTwoNaive{} ($p=\PValTwoNaive$) under D1 and \MeanDTwoKeyed{} ($p=\PValTwoKeyed$) under D2. These are three different random realisations of the same estimand (FIFO means agree within two standard errors, difference \PropCDiffTwo{} vs. standard error \PropCSETwo), so we read them as a demonstration of sampling variability at 100 seeds, not as a design effect.
+
+\paragraph{H4: attribution.} Mean self-blocking of the low-priority flow was \HFourWithFIFO{}~ms with the competitor present and \HFourWithoutFIFO{}~ms without (mean absolute per-seed difference \HFourAbsFIFO{}~ms, about \HFourUnits{}~$\mu$s). The relative change is large but the absolute size is microseconds. The trace-level control reproduced the original values exactly, so the identity holds on a fixed trace and fails as a statement about removing a flow from the system.
+
+\paragraph{H5: loss draws.} In \OFiveAttempts{} attempts, every one consumed two draws (single-draw variant: \OFiveSingleRate{} violations). Without bursts both variants matched the configured frame error rate (\LossFreqShipped{} \LossFreqShippedCI{} and \LossFreqSingle{} \LossFreqSingleCI{}), as the validity check required. With a two-state burst channel the mean loss-burst length was \BurstShipped{} attempts shipped vs \BurstSingle{} single-draw.
+
+\paragraph{H6: causality.} Truncating the input at 150~ms left all released packets identical for FIFO, FullSASP and MeanOnly (0 violations each) and exposed the global leak in \HSixLeakyGlobal{} seeds. The local leak was caught in only \HSixLeakyLocal{} seeds: a release-level comparison is blind to short look-ahead.
+
+\section{Exploratory results (fresh seeds, no preregistered thresholds)}
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.95\linewidth]{fig_pairing.pdf}
+\caption{Across-seed correlation between FIFO and FullSASP (\tagE{}). (a) Python simulator vs.\ link asymmetry, 100 fresh seeds per point, shared and keyed streams. (b) Pre-existing ns-3 runs (30 seeds per cell, \tagP{}).}
+\end{figure}
+\begin{table}[h]
+\centering\small
+\input{tab_x1.tex}
+\caption{X1 (\tagE{}): asymmetry sweep, seeds 9000--9099. Arrival mismatches across arms under the shared stream totalled \XOneMismatch{} over all points and designs.}
+\end{table}
+\begin{table}[h]
+\centering\small
+\input{tab_x5.tex}
+\caption{X5 (\tagE{}, \tagP{}): re-analysis of the existing ns-3 campaign. Offered traffic was identical across arms in \XFiveIdentical{} of \XFiveTriples{} (cell, seed) triples.}
+\end{table}
+\paragraph{X1/X5: pairing strength.} Correlation fell from \XOneRhoLow{} at 0.1~ms asymmetry to \XOneRhoHigh{} at 2~ms under the shared stream and \XOneRhoHighKeyed{} under the keyed stream; arrival coupling never broke. In ns-3 the same correlation ranged from \XFiveRhoMin{} to \XFiveRhoMax{} while traffic was identical in every triple. Together these point to trajectory divergence between schedulers, not random-stream design, as the reason pairing weakens.
+\paragraph{X2: effect of the double draw.} With a burst channel, weighted blocking for FIFO was \XTwoMShipFIFO{} (shipped) vs \XTwoMSingleFIFO{} (single draw), and for FullSASP \XTwoMShipSASP{} vs \XTwoMSingleSASP{}; the relative FIFO-to-FullSASP reduction was \XTwoRedShip{} vs \XTwoRedSingle{}. The undelivered fraction rose from \XTwoUndelShip{} to \XTwoUndelSingle{}. Absolute numbers depend on this specification detail; the ranking did not change.
+\paragraph{X3: decision-level causality.} Comparing dispatch records instead of released packets caught the local leak in \XThreeLeakyLocal{} seeds and the global leak in \XThreeLeakyGlobal{}, with \XThreeFIFO{}, \XThreeFullSASP{}, \XThreeMeanOnly{} violations for the real schedulers.
+\paragraph{X4: effect size.} Over 1000 fresh seeds the FullSASP minus FIFO difference in $M$ was \XFourDShared{} (\XFourCIShared{}) under the shipped design and \XFourDKeyed{} (\XFourCIKeyed{}) under the keyed design, about \XFourRel{} of the FIFO mean (\XFourFIFOKeyed{}); FullSASP was lower in only \XFourLowerKeyed{} of seeds. The earlier campaign (\OldN{} seeds, same scenario) had reported \OldFIFO{} vs.\ \OldSASP{} (\OldRel{} reduction).
+
+\section{Claim-to-evidence table}
+Provenance tags: \tagC{} preregistered confirmatory; \tagE{} exploratory; \tagP{} analysis of pre-existing data; \tagA{} analytic or by construction.
+\begin{table}[h]
+\centering\footnotesize
+\begin{tabular}{p{0.32\linewidth}p{0.29\linewidth}p{0.09\linewidth}p{0.18\linewidth}}
+\toprule
+Claim & Evidence & Tag & Result file \\
+\midrule
+Shared stream does not desynchronise arrivals & \OneMismatchShared{} mismatches; \EOneTotal{} across loss rates & \tagC{}/\tagE & analysis, E1 \\
+Keyed noise does not tighten paired CIs here & width ratio \WidthRatioTwo{} & \tagC & analysis \\
+Pairing falls toward zero with asymmetry, both designs & \XOneRhoLow{}$\to$\XOneRhoHigh{} & \tagE & exploratory \\
+ns-3 pairing varies with load & \XFiveRhoMin{} to \XFiveRhoMax{} & \tagE/\tagP & exploratory \\
+Survivor bias is immaterial here & \UndelFracFIFO{} undelivered & \tagC & analysis \\
+Double loss draw & \OFiveRate{} of attempts & \tagC & analysis \\
+Double draw shortens bursts & \BurstRel{} (rel.\ change) \BurstRelCI & \tagC & analysis \\
+Double draw changes absolute $M$ & \XTwoMShipFIFO{} vs \XTwoMSingleFIFO{} & \tagE & exploratory \\
+Attribution holds only on a fixed trace & \HFourRatioFIFO{}; control \HFourTrace & \tagC & analysis \\
+Real schedulers are causal (release level) & \HSixFIFO{}, \HSixFullSASP{}, \HSixMeanOnly{} & \tagC & analysis \\
+Release-level test misses local look-ahead & \HSixLeakyLocal{} & \tagC & analysis \\
+Gain estimate shrinks with more seeds & \OldD{} vs \XFourDShared{} & \tagE/\tagP & exploratory \\
+Censoring bias direction is downward & \UnderUFIFO{} & \tagC & analysis \\
+Censoring lower bound; arrival coupling (D1/D2) & 500 random scenarios & \tagA & tests/test\_props.py \\
+\bottomrule
+\end{tabular}
+\caption{Every number resolves to a stored result file through \texttt{make\_numbers.py}.}
+\end{table}
+
+\section{Recommendations for simulation-based MLO studies}
+(i) Report the across-seed correlation between arms beside every paired test, with its interval. (ii) Use enough seeds for the interval to exclude implausibly large effects; our 30-seed example did not. (iii) Add a one-draw-per-attempt check and a loss-free drained run to the simulator's test suite. (iv) State whether invariance claims hold on a fixed trace or under intervention. (v) Test causality by truncating the input, with a leaking policy as positive control, and compare decisions as well as releases.
+
+\section{Limitations}
+\begin{itemize}
+  \item One simulator, two links, 300~ms runs of about \GenPerRun{} packets, and three flow-count scales. Scales are replication cells with the same thresholds, not independent evidence of a general law.
+  \item Three of six preregistered hypotheses were not supported, and the arrival-coupling mechanism offered for H1 was proposed after the data and not tested by an ablation.
+  \item The asymmetry sweep, double-draw effect, decision-level test, 1000-seed estimate and ns-3 comparison are exploratory; the ns-3 material re-analyses runs made before this study and no new ns-3 experiments were run, so no claim is made that the same fix or diagnosis transfers.
+  \item Pilot runs on seeds 1--40 were examined before the amendment; they showed identical arrivals under the shipped design (Amendment~2 discloses this). Confirmatory seeds were untouched.
+  \item The H4 effect is large in relative terms but only microseconds in absolute terms.
+  \item The H6 pass is conditional on the test's power; it cannot see short look-ahead, as the control shows.
+  \item The harness re-implements the event loop in a subclass; equivalence with the shipped simulator is established empirically (45 runs, field for field), not by proof.
+  \item The related-work search was not exhaustive. Several reference entries inherited from earlier notes could not be verified and are omitted.
+  \item $p$-values use a sign-flip randomisation test instead of a $t$-test, a deviation recorded in Amendment~2.
+  \item No human annotation, no model judge and no hardware measurements were used.
+\end{itemize}
+
+\section{Conclusion}
+The audited comparison's most basic invariants (same traffic across arms, complete reporting) held; two specification-level invariants did not, and the correlation that makes paired testing useful depended on system dynamics in ways that no random-number fix addressed.
+The reusable outputs are the oracle battery with its controls, the reporting checklist, and the finding that effect sizes from few seeds in this setting were imprecise by a factor of about \OldRatio{}.
+
+\section*{Reproducibility}\label{sec:repro}
+Preregistration, two amendments, harness, raw results, analysis, exploratory plan and logs are in \texttt{validation/pairing/}. Commits: preregistration \texttt{4f4b8f0} (SHA-256 \texttt{abf0c16a\dots}), Amendment~1 \texttt{d7448bb} (\texttt{9c04bb72\dots}), Amendment~2 and harness \texttt{25d2ce1} (\texttt{68c09ec2\dots}), confirmatory results and exploratory plan \texttt{49437e6}. Raw-file hashes are in \texttt{results/RAW\_AND\_ANALYSIS.sha256}; decisions are logged in \texttt{decisions.md}. Rebuild with \texttt{run\_study.py}, \texttt{analyze.py}, \texttt{run\_exploratory.py}, then \texttt{paper/make\_numbers.py} and \texttt{paper/make\_fig.py}.
+
+\bibliographystyle{plain}
+\bibliography{refs}
+\end{document}

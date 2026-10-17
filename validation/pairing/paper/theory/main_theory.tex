@@ -1,0 +1,302 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{booktabs,amsmath,amssymb,amsthm,graphicx,url,array,xcolor}
+\usepackage[colorlinks=true,linkcolor=blue!50!black,citecolor=blue!50!black,urlcolor=blue!50!black]{hyperref}
+\input{../numbers.tex}
+\input{numbers_theory.tex}
+\newcommand{\tagC}{\textsc{conf}}
+\newcommand{\tagE}{\textsc{expl}}
+\newcommand{\tagP}{\textsc{post hoc}}
+\newcommand{\tagA}{\textsc{analytic}}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{corollary}{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
+\newtheorem{example}{Example}
+\newcommand{\Net}{\mathrm{Net}}
+
+\title{Resequencing Blame: An Airport-Game Theory of\\Cross-Flow Head-of-Line Blocking in Shared Reorder Buffers}
+\author{Adhyan Jain\thanks{Corresponding author; affiliation and email to be added.} \and Atharva Sheersh Pandey \and Kshitij Manikshete\\[2pt]\small [Institution, department, city, country: to be added]}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+When several flows share one reordering buffer, as in Wi-Fi~7 multi-link operation, a packet can wait for earlier packets of \emph{other} flows. Studies report this head-of-line blocking per flow but do not say which other flow is responsible.
+We define the attribution game precisely: the players are the other flows, the outcome is the cross-flow blocking of one packet, and a coalition is a set of flows whose packets are kept in a recorded trace with arrival times frozen.
+For a receiver that releases packets in sequence order this game is an \emph{airport game} (a coalition costs as much as its latest member~\cite{littlechild1973airport}), so the Shapley value has a closed form computed from observed arrival events, with no counterfactual replays.
+We prove that leave-one-out blame misses exactly the second-largest lateness, that Shapley blame is $L^1$-Lipschitz in the lateness with a constant (2) independent of load, number of flows and buffer size, whereas the usual ``last arrival takes all'' attribution has no bound, and that the structure survives \emph{forced release}: a receiver with a finite window and a hold timer is the reference receiver applied to effective arrival times, with an explicit bound between ideal and forced-release blame and a per-packet applicability certificate that refuses packets whose release was forced.
+Exact oracles confirm the theory on \FvSimRuns{} simulator runs, on \FvSxTraces{} traces with windows, timers and permanent loss (\FvSxPackets{} packets, maximum error \FvSxErr{}), and on the independent reorder buffer of ns-3.47 (\FvNsSixPackets{} packets, release-law error \FvNsSixErr{}).
+Negative and null results are reported: in the simulator and in ns-3 most blocked packets have a single late flow, so the usual rules coincide there; Shapley blame is not more stable on average under timestamp noise, only in the worst case; one preregistered numerical criterion failed; and the applicability certificate refuses \FvSxCertRef{} of packets in the stress traces.
+All evidence is from simulation.
+\end{abstract}
+
+\section{Introduction}
+Wi-Fi~7 multi-link operation (MLO)~\cite{ieee80211be2024} lets a device transmit over several links at once, so packets of one traffic identifier can arrive out of order and are held in a single reorder buffer until earlier sequence numbers have arrived.
+The buffer is shared: a packet of flow~$i$ can wait for an earlier-numbered packet of flow~$j$ that is delayed on a slower link.
+The MLO literature we found concentrates on traffic allocation, channel-access anomalies and delay models~\cite{lopezraventos2022mlo,carrascosa2023understanding}; classical work on \emph{resequencing} studies the delay of a single stream over parallel paths~\cite{baccelli1984resequencing,han2005resequencing}.
+We found no work that asks the question a designer or operator faces when a latency-sensitive flow is slowed down: \emph{which other flow is responsible, and by how much?}
+
+\paragraph{The contribution in one sentence.}
+We give a replay-free, per-packet Shapley attribution of cross-flow blocking in a shared reorder buffer. \emph{Players:} the other flows. \emph{Outcome:} the cross-flow blocking $X_k(T)$ of one packet $k$ when only the packets of the flows in $T$ (and of its own flow) are present in a recorded trace, arrival times frozen. \emph{Why no replay is needed:} $X_k(T)$ is the largest ``lateness'' among the flows in $T$, an airport game, whose Shapley value is a sorted partial sum computed from the observed arrival events. The same structure holds for receivers with a finite window and a hold timer once arrival times are replaced by effective (resolution) times.
+
+\paragraph{What is and is not new.} The release law (a packet leaves when it and all earlier packets have arrived) is classical resequencing; the airport game and its Shapley value are classical cooperative game theory~\cite{littlechild1973airport,dubey1982airport}; cooperative games have been applied to queueing costs~\cite{maniquet2003queueing,mitra2023shared}. To our knowledge the identification of cross-flow reordering blame with the airport game, and the consequences proved here, are new (our search was limited, Section~\ref{sec:related}); the novelty is the structure and what it gives, not ``Shapley applied to delay''.
+
+\paragraph{Contributions, ranked by strength of evidence.}
+\begin{enumerate}
+  \item \textbf{Structure} (Theorem~\ref{thm:airport}): cross-flow blocking is an airport game per packet, exactly, for every coalition kept in a trace. Verified by oracles that re-run the \emph{unmodified} receiver on traces with flows deleted (\FvODoublePackets{} packets, error $\le$ \FvMaxErr{}; \tagC{}).
+  \item \textbf{Replay-free exact blame and the degeneracy of the alternatives} (Theorems~\ref{thm:shapley},~\ref{thm:masking}, Example~\ref{ex:tie}): closed-form Shapley blame; leave-one-out misses exactly the second-largest lateness and the releaser rule charges one of several tied flows arbitrarily (\tagA{}, exact). Cost: $O(m\log m)$ per packet against $2^{m}$ replays (\FvCostRatio{} times faster already at $m=3$ other flows).
+  \item \textbf{Forced release} (Section~\ref{sec:forced}): a receiver with window $W$ and hold timer $\tau$ obeys the same law on effective arrival times (Theorem~\ref{thm:window}); ideal and forced-release blame differ by at most $2m\delta$ (Corollary~\ref{cor:bound}); a per-packet certificate tells where the reference theory applies (Proposition~\ref{prop:applic}). Confirmed on \FvSxTraces{} traces, 18 window/timer/loss configurations, \FvSxEvents{} forced events (\tagC{}).
+  \item \textbf{A second implementation} (Section~\ref{sec:val-ns3}): in ns-3.47's own recipient reorder buffer the release law holds exactly over \FvNsSixPackets{} packets in \FvNsSixRuns{} scripted three-flow runs, our unmodified receiver reproduces its release times, and ns-3's own cross-wait columns are reproduced from the trace (\tagC{}).
+  \item \textbf{Worst-case stability} (Theorem~\ref{thm:stability}): $\|\phi(\ell')-\phi(\ell)\|_1\le2\|\ell'-\ell\|_1$; the releaser rule has no such bound (worst observed change ratio \FvRatioSh{} against \FvRatioRel{}). Not an average-case advantage (\tagC{} bound, \tagE{} ratio).
+  \item \textbf{Scope of additivity} (Theorem~\ref{thm:dichotomy}): the trace-level cross-blocking game is sub-additive for any arrival process; FIFO M/G/1 waiting is super-additive; in replay the queueing part had $R_Q=\FvRQA{}$ and $\FvRQB{}$, intervals above one (\tagC{}).
+  \item \textbf{Bridge to counterfactual externalities and a stochastic baseline} (Sections~\ref{sec:bridge},~\ref{sec:poisson}): accounting identity, boundary condition, an explained-fraction bound with violations in \FourPyViol{} Python and \FourNsViol{} ns-3 held-out cells (\tagC{}); Poisson closed forms serve as a validation baseline, not as a standalone result.
+\end{enumerate}
+
+\paragraph{What we do not claim.} Shapley is not claimed to be the only reasonable rule (it is characterised under stated axioms); blame-guided scheduling is not claimed to improve performance (an aligned decision test found no benefit); the stochastic model is not claimed to describe any device; the results are not claimed for hardware, for ns-3's own forced-release mechanism, or for duplicates. No human annotation and no model judge were used.
+
+\section{Related work and positioning}\label{sec:related}
+Searches were limited, not exhaustive; statements of novelty are \emph{to our knowledge}.
+\begin{itemize}
+  \item \textbf{Resequencing.} Baccelli, Gelenbe and Plateau analyse resequencing delay end to end~\cite{baccelli1984resequencing}; Han and Makowski study resequencing delay under multipath routing and its light- and heavy-tailed behaviour~\cite{han2005resequencing}. Finite buffers, timeouts and forced release are standard in this literature; we add attribution of a flow's wait to the flows sharing the buffer, and show it survives these mechanisms.
+  \item \textbf{Airport games.} Littlechild and Owen give the closed-form Shapley value of the game in which a coalition costs as much as its largest member~\cite{littlechild1973airport}; Dubey shows that Shapley's axiomatisation remains valid on this class~\cite{dubey1982airport}. We use both; our contribution is the identification of resequencing blame with this class.
+  \item \textbf{Cooperative games for queues.} Maniquet characterises the Shapley value for queueing problems~\cite{maniquet2003queueing}; Mitra, Gupta and Hemachandra analyse cost sharing in shared multi-class service systems~\cite{mitra2023shared}. Those games concern waiting in service queues; none, in our search, concerns the reorder buffer, where the cost of a coalition is a maximum rather than a sum of service interactions.
+  \item \textbf{Shapley in networking and learning.} Shapley attribution is used for ISP settlement~\cite{ma2010shapleyisp} and for data valuation, where leave-one-out is known to miss interactions~\cite{ghorbani2019datashapley}; we prove the sharp form of that limitation for this structure (Theorem~\ref{thm:masking}).
+  \item \textbf{Queueing externalities.} Naor~\cite{naor1969tolls} showed that a customer ignores the delay imposed on others; we use the convexity of FIFO waiting (Theorem~\ref{thm:dichotomy}).
+  \item \textbf{Counterfactual replay and testing.} Common random numbers~\cite{glasserman1992crn}, counterfactual trajectories~\cite{oberst2019counterfactual} and metamorphic testing~\cite{chen2018metamorphic} motivate the interventional replay and our truncate-and-rebuild oracle.
+\end{itemize}
+Reference entries inherited from earlier project notes that we could not verify were left out. We did not compute standard reordering metrics (reorder density, buffer-occupancy density) on our traces.
+
+\section{Model}\label{sec:model}
+Packets are indexed $k=1,2,\dots$ in the order of their sequence numbers (SN). Packet $k$ belongs to flow $f(k)\in N$ and physically arrives at the receiver at time $A_k$ ($A_k=\infty$ if it never arrives). Flows are an arbitrary partition of the packets that share the buffer (applications, stations, streams).
+
+\begin{definition}[Reference receiver]\label{def:ir}
+Every sequence number eventually arrives and a packet is released at the first instant at which it and all packets with smaller SN have arrived: no forced advance, no timeout. The release time is $R_k$. This is an analytically tractable reference, not a model of deployed receivers; Section~\ref{sec:forced} treats windows and timers.
+\end{definition}
+\begin{lemma}[Release law]\label{lem:release}
+$R_k=\max_{j\le k}A_j$.
+\end{lemma}
+\emph{Proof.} Packet $k$ can be released once $A_j$ has occurred for every $j\le k$, and release is triggered by the last such arrival. \hfill$\square$
+
+\paragraph{Decomposition.} For a packet $k$ of flow $i$ let $b_k=\max\{A_j:j\le k,\ f(j)=i\}$ be the time at which flow $i$'s own packets up to $k$ have all arrived. Self-blocking is $S_k=b_k-A_k$ and cross-blocking is $X_k=R_k-b_k\ge0$, so the reordering wait is $S_k+X_k=R_k-A_k$.
+
+\begin{definition}[Lateness]
+For $j\ne i$ let $M_{j,k}=\max\{A_l:l<k,\ f(l)=j\}$ ($-\infty$ if there is none) and $\ell_{j,k}=(M_{j,k}-b_k)^+$: how long after flow $i$'s own packets are complete the latest earlier packet of flow $j$ arrives.
+\end{definition}
+\paragraph{The game.} For $T\subseteq N\setminus\{i\}$ the \emph{restricted trace} keeps the packets of $T\cup\{i\}$ with their arrival times and relative SN order and runs the same receiver; $X_k(T)$ is the cross-blocking of packet $k$ in it. This is a metamorphic operation on a recorded trace that freezes physical arrivals. It differs from an \emph{interventional} replay in which the other flows are removed from the system and the arrivals themselves change (Section~\ref{sec:bridge}).
+
+\section{Structure: cross-flow blocking is an airport game}
+\begin{theorem}[Airport structure]\label{thm:airport}
+For every packet $k$ of flow $i$ and every $T\subseteq N\setminus\{i\}$,
+\[
+X_k(T)=\max_{j\in T}\ell_{j,k}\qquad(\max\emptyset=0).
+\]
+In particular $X_k=X_k(N\setminus\{i\})=\max_{j\ne i}\ell_{j,k}$, and $T\mapsto X_k(T)$ is a monotone, submodular airport game.
+\end{theorem}
+\emph{Proof.} In the restricted trace, the release law gives $R_k(T)=\max\{b_k,\max_{j\in T}M_{j,k}\}$, because the packets with $SN\le k$ are those of $i$ (whose latest arrival is $b_k$) and of the flows in $T$. Therefore $X_k(T)=R_k(T)-b_k=\max\{0,\max_{j\in T}(M_{j,k}-b_k)\}=\max_{j\in T}\ell_{j,k}$. A maximum of nonnegative numbers is monotone and submodular in the index set. \hfill$\square$
+
+\begin{remark}
+The release time depends on all earlier flows only through their latest arrival. Two or more flows that are both late therefore do not add: the victim waits for the later of them.
+\end{remark}
+
+\section{Blame}
+Let $m=|N\setminus\{i\}|$ and write $\ell_{(1)}\le\dots\le\ell_{(m)}$ for the sorted lateness of a packet, $\ell_{(0)}=0$.
+\begin{theorem}[Closed-form Shapley blame]\label{thm:shapley}
+The Shapley value $\phi$ of the airport game $v(T)=\max_{j\in T}\ell_j$ is, for the flow of rank $r$,
+\[
+\phi_{(r)}=\sum_{s=1}^{r}\frac{\ell_{(s)}-\ell_{(s-1)}}{m-s+1},\qquad\text{equivalently}\qquad \phi_j=\int_0^{\ell_j}\frac{dt}{n(t)},\quad n(t)=\#\{k:\ell_k\ge t\}.
+\]
+It satisfies: (a) efficiency $\sum_j\phi_j=\max_j\ell_j=X_k$; (b) symmetry and the null-player property ($\ell_j=0\Rightarrow\phi_j=0$); (c) rank preservation $\ell_a\le\ell_b\Rightarrow\phi_a\le\phi_b$ and $0\le\phi_j\le\ell_j$; (d) core membership $\sum_{j\in S}\phi_j\le v(S)$ for every $S$; (e) additivity over packets, so the blame of $j$ on $i$ over any set of packets is the sum of the per-packet blames. Among rules on airport games satisfying Shapley's axioms it is unique~\cite{dubey1982airport}. It is computed in $O(m\log m)$ per packet.
+\end{theorem}
+\emph{Proof.} Let $H_s$ be the set of flows with rank $\ge s$. Then $v=\sum_{s=1}^m(\ell_{(s)}-\ell_{(s-1)})\,u_s$ where $u_s(T)=\mathbf 1[T\cap H_s\ne\emptyset]$ (evaluated at $T$ the right-hand side sums the increments up to the largest rank present in $T$, i.e.\ $\ell_{(\max)}$). By symmetry among the members of $H_s$, the null-player property for the others and efficiency, the Shapley value of $u_s$ gives each member of $H_s$ the amount $1/|H_s|=1/(m-s+1)$. Linearity of the Shapley value gives the formula; the integral form follows because $n(t)=m-s+1$ for $t\in(\ell_{(s-1)},\ell_{(s)}]$. (a)--(c) are read off the formula (every term is nonnegative, $1/(m-s+1)\le1$, and $\phi_{(r)}-\phi_{(r-1)}\ge0$). For (d), $\sum_{j\in S}\phi_j=\sum_s(\ell_{(s)}-\ell_{(s-1)})|S\cap H_s|/|H_s|\le\sum_s(\ell_{(s)}-\ell_{(s-1)})\mathbf 1[S\cap H_s\ne\emptyset]=v(S)$. (e) is additivity of the Shapley value. Uniqueness is Dubey's theorem~\cite{dubey1982airport}; the closed form is the Littlechild--Owen expression~\cite{littlechild1973airport}. \hfill$\square$
+
+\begin{figure}[h]
+\centering\small
+\fbox{\begin{minipage}{0.92\linewidth}
+\textbf{Algorithm 1} (trace $\to$ blame). Input: packets in SN order with flow $f(k)$ and arrival (or effective arrival) $A_k$. Maintain, for each flow $j$, $M_j$ = latest arrival so far.
+\begin{enumerate}\itemsep0pt
+  \item For $k=1,2,\dots$: $b\leftarrow\max(A_k,M_{f(k)})$; for $j\ne f(k)$: $\ell_j\leftarrow(M_j-b)^+$.
+  \item Sort the $\ell_j$; $\phi_{(r)}\leftarrow\sum_{s\le r}(\ell_{(s)}-\ell_{(s-1)})/(m-s+1)$; add $\phi_j$ to the blame of $j$ on $f(k)$.
+  \item $M_{f(k)}\leftarrow\max(M_{f(k)},A_k)$.
+\end{enumerate}
+Time $O(Km\log m)$ for $K$ packets and $m$ other flows, memory $O(m)$. Computing the same blame from counterfactual replays needs a run for every coalition ($2^{m}$ per victim).
+\end{minipage}}
+\caption{Replay-free exact blame.}\label{alg:blame}
+\end{figure}
+
+\begin{theorem}[Masking and sub-additivity]\label{thm:masking}
+Let $\mathrm{LOO}_j=v(N')-v(N'\setminus\{j\})$, $N'=N\setminus\{i\}$. Then $\mathrm{LOO}_j=\ell_{(m)}-\ell_{(m-1)}$ if $j$ is the unique flow with the largest lateness and $\mathrm{LOO}_j=0$ otherwise. Consequently $\sum_j\mathrm{LOO}_j\le X_k\le\sum_j\ell_j$, and the amount leave-one-out fails to account for is exactly the second-largest lateness $\ell_{(m-1)}$.
+\end{theorem}
+\emph{Proof.} Removing a flow changes the maximum only if it was the unique maximiser, and then to the second-largest value. Summing, $\sum_j\mathrm{LOO}_j=\ell_{(m)}-\ell_{(m-1)}\le\ell_{(m)}=X_k\le\sum_j\ell_j$; the unaccounted amount is $X_k-\sum_j\mathrm{LOO}_j=\ell_{(m-1)}$; if the maximiser is not unique all $\mathrm{LOO}_j=0$ and $X_k=\ell_{(m)}=\ell_{(m-1)}$, so the same holds. \hfill$\square$
+
+\begin{example}[A minimal case where the rules differ]\label{ex:tie}
+A victim packet waits $X=3$ ms because two flows are equally late ($\ell=3,3$) and a third is a little late ($\ell=1$). Leave-one-out charges $(0,0,0)$: it explains none of the 3 ms. The releaser rule charges $(3,0,0)$ or $(0,3,0)$, depending on which of the tied packets happened to arrive last. Shapley charges $(\tfrac43,\tfrac43,\tfrac13)$: the first millisecond is shared by all three flows that were late at least that long, the remaining two by the two that were late longer. (Checked against subset enumeration.)
+\end{example}
+
+\begin{proposition}[When the rules coincide]\label{prop:coincide}
+If at most one other flow has $\ell_{j,k}>0$, then the Shapley, releaser and leave-one-out blames of packet $k$ all equal $X_k$ on that flow. If two or more flows are late, the releaser and leave-one-out rules charge at most one flow while Shapley charges every late flow ($\phi_j>0\iff\ell_j>0$).
+\end{proposition}
+
+\begin{theorem}[Stability]\label{thm:stability}
+Let $\ell,\ell'\in\mathbb R_+^m$ be lateness vectors of the same packet (for example computed from two versions of the trace). (a) If every arrival timestamp is changed by at most $\epsilon$, then $\|\ell'-\ell\|_\infty\le2\epsilon$. (b) $\|\phi(\ell')-\phi(\ell)\|_1\le2\|\ell'-\ell\|_1$; the constant $2$ does not depend on $m$, on the load, on the window or on the arrival process, so under (a) $\|\phi(\ell')-\phi(\ell)\|_1\le4m\epsilon$. (c) The releaser blame $\rho$ has no such bound: for $\ell=(x,x+\delta)$ and $\ell'=(x+\delta,x)$, $\|\rho(\ell')-\rho(\ell)\|_1=2(x+\delta)$ while $\|\ell'-\ell\|_1=2\delta$.
+\end{theorem}
+\emph{Proof.} (a) $b_k$ and each $M_{j,k}$ are maxima of timestamps and move by at most $\epsilon$; the difference moves by at most $2\epsilon$ and $(\cdot)^+$ is 1-Lipschitz. (b) Write $\phi=\int_0^\infty U(t)\,dt$ with $U(t)$ the uniform distribution on $H(t)=\{j:\ell_j\ge t\}$ (zero if empty), the integral form of Theorem~\ref{thm:shapley}. If $H'(t)=H(t)$ then $U'(t)=U(t)$; otherwise some $j$ has $t$ between $\ell_j$ and $\ell'_j$, a set of measure at most $\sum_j|\ell'_j-\ell_j|$, on which $\|U'(t)-U(t)\|_1\le2$. (c) is a direct computation. \hfill$\square$
+
+\noindent The bound is about the lateness-to-blame map; it says nothing about robustness of a deployed measurement chain, and by Theorem~\ref{thm:window} it also covers receivers with windows and timers when $\ell$ is computed from effective arrival times.
+
+\section{Forced release: windows and hold timers}\label{sec:forced}
+A deployed receiver does not wait forever. In the Block-Ack model the reorder buffer holds at most $W$ sequence numbers (we write $W$ for window and buffer capacity); an arriving SN beyond the window forces the window forward, and many implementations also release a packet held longer than a timer $\tau$. A packet that arrives after its slot has been skipped is discarded. We model: (R1) a packet with SN below the window start is discarded; (R2) an arriving SN $s\ge$ window start $+W$ moves the window start to $s-W+1$ and releases every buffered packet below it in order; (R3) a buffered packet held for $\tau$ is released at its arrival time $+\tau$ together with everything buffered below it, the window start moving to it; (R4) after each event, contiguous packets are released. (R1, R2, R4) are the project's \texttt{BlockAckReceiver}; (R3) is a reference timer receiver we implement.
+
+\begin{definition}[Effective arrival]
+$F_j=\min\{A_s:s\ge j+W\}$, $T_j=\min\{A_s:s>j\}+\tau$ ($T_j=\infty$ without a timer), and $\tilde A_j=\min(A_j,F_j,T_j)$: the time at which slot $j$ is \emph{resolved}, by its own arrival or by a forced advance.
+\end{definition}
+\begin{theorem}[Release law with window and timer]\label{thm:window}
+Every released packet $k$ has release time $R_k=\max_{j\le k}\tilde A_j$, and the delivered set is $\{k:A_k<\min(F_k,T_k)\text{ and }R_k<\infty\}$.
+\end{theorem}
+\emph{Proof.} The window start moves only by (i) contiguous release, which needs the slot resolved, (ii) a forced advance, triggered by the arrival of an SN $s\ge j+W$ (the earliest such arrival is $F_j$; while slot $j$ is unresolved the window start is at most $j$, so any $s\ge j+W$ triggers it), or (iii) a timer expiry of a buffered $s>j$ (the earliest is $T_j$; while $j$ is unresolved every arrived $s>j$ stays buffered, so its timer runs). Hence slot $j$ is resolved at the first of $A_j$, $F_j$, $T_j$. If $A_j$ is first, packet $j$ fills its slot; otherwise the slot is skipped and packet $j$, if it ever arrives, is discarded by (R1). Packet $k$ is released when all slots $\le k$ are resolved, i.e.\ at $\max_{j\le k}\tilde A_j$, and it is delivered iff its own slot was filled by it. \hfill$\square$
+
+\begin{theorem}[Airport structure on effective arrivals]\label{thm:effective}
+With $\tilde b_k$, $\tilde\ell_{j,k}$ defined as $b_k,\ell_{j,k}$ with $\tilde A$ in place of $A$ (a skipped slot belongs to the flow of the packet that should have filled it), the cross-blocking of a released packet $\tilde X_k=R_k-\tilde b_k$ equals $\max_{j\ne f(k)}\tilde\ell_{j,k}$, and Theorems~\ref{thm:shapley}--\ref{thm:stability} hold verbatim for $\tilde\ell$.
+\end{theorem}
+\emph{Proof.} By Theorem~\ref{thm:window} the receiver releases exactly as the reference receiver would if packet $j$ arrived at $\tilde A_j$; apply Theorems~\ref{thm:airport}--\ref{thm:stability}. \hfill$\square$
+
+\begin{corollary}[Bounded error between ideal and forced-release blame]\label{cor:bound}
+On a loss-free trace let $\delta_k=\max_{j\le k}(A_j-\tilde A_j)\ge0$. Then $|\tilde\ell_{j,k}-\ell_{j,k}|\le\delta_k$ for every $j$, hence $\|\phi(\tilde\ell)-\phi(\ell)\|_1\le2m\delta_k$; blame is identical when no slot up to $k$ was resolved early ($\delta_k=0$).
+\end{corollary}
+\emph{Proof.} $0\le A_l-\tilde A_l\le\delta_k$ for $l\le k$, so $\tilde b_k-b_k$ and $\tilde M_{j,k}-M_{j,k}$ both lie in $[-\delta_k,0]$ and their difference in $[-\delta_k,\delta_k]$; $(\cdot)^+$ is 1-Lipschitz. Then Theorem~\ref{thm:stability}(b) and $\|\cdot\|_1\le m\|\cdot\|_\infty$. \hfill$\square$
+
+\begin{proposition}[Applicability certificate]\label{prop:applic}
+Call a released packet $k$ \emph{certified} if $R_k=\max\{A_j:j\le k,\ j\text{ received}\}$. For a certified packet the identity $X_k=\max_j\ell_{j,k}$ computed from observed arrivals holds exactly (it is the identity itself). If no slot $\le k$ was resolved before its physical arrival ($\tilde A_j=A_j$ for all $j\le k$) the packet is certified; equivalently, a rejection implies that a forced release or a loss preceded $k$ (soundness). The converse fails: a packet can be certified although an earlier slot was skipped, when the cut did not bind.
+\end{proposition}
+\begin{remark}[What is and is not covered]
+Theorem~\ref{thm:window} is for the arrival-triggered window advance of (R2) and the timer (R3). In ns-3 the originator moves the recipient window after a drop by a different trigger (a block-ack request); that mechanism, duplicates, and real hardware are not covered. The skipped slot's owner is known at the sender but not at the receiver, so charging a forced release to the flow that caused the gap needs sender-side information; a receiver-only trace can attribute only certified packets.
+\end{remark}
+
+\section{From traces to interventions}\label{sec:bridge}
+The airport structure is a statement about a \emph{frozen} trace. The counterfactual an operator cares about, ``how much worse is flow $i$'s delay because flow $j$ exists?'', lets arrivals change: removing a flow also changes queueing and contention. With $D_i(C)$ the mean end-to-end delay of $i$ when exactly the flows $C\ni i$ are present (identical arrivals and per-packet noise for a flow in every coalition, by keyed random numbers~\cite{glasserman1992crn}), the \emph{interventional externality} is $E_i=D_i(N)-D_i(\{i\})$. Three results connect the two levels (proved and tested in the companion measurement study; restated with proofs here):
+\begin{proposition}[Accounting identity]\label{prop:id}
+$E_i=\Delta\Net_i+\Delta S_i+\Delta X_i$, with $\Delta Z_i=Z_i(N)-Z_i(\{i\})$, and $\Delta X_i=X_i(N)$ is exactly the trace-level cross-blocking.
+\end{proposition}
+\emph{Proof.} Per packet e2e $=\Net+S+X$; average and subtract; a single flow has $X=0$. \hfill$\square$
+\begin{proposition}[Boundary condition]\label{prop:boundary}
+If adding or removing flow $j$ changes neither the arrival times nor the sequence numbers of flow $i$'s packets (e.g.\ flows pinned to disjoint links), then $\Delta\Net_i=\Delta S_i=0$ and $E_i=X_i(N)$.
+\end{proposition}
+\begin{proposition}[Explained-fraction bound]\label{prop:cert}
+If $E_i>0$ and $d_{\min}\le D_i(\{i\})$, then $r:=X_i(N)/E_i\ge X_i(N)/(D_i(N)-d_{\min})\ge q:=X_i(N)/D_i(N)$, and $q$ is computable from one trace.
+\end{proposition}
+\emph{Proof.} $E_i=D_i(N)-D_i(\{i\})\le D_i(N)-d_{\min}$ and $X_i(N)\ge0$. \hfill$\square$
+
+\begin{theorem}[Scope of additivity]\label{thm:dichotomy}
+Three set functions, three scopes. (i) \emph{Trace level, any arrival process:} the cross-blocking game $v_k(T)=X_k(T)$ satisfies $\sum_j\mathrm{LOO}_j\le X_k\le\sum_jX_k(\{j\})$. (ii) \emph{Static FIFO M/G/1 only:} the mean waiting time $W(T)$ of a victim sharing a work-conserving FIFO single server with the Poisson flows in $T$ is supermodular in $T$, hence $\sum_j[W(N)-W(N\setminus\{j\})]\ge W(N)-W(\emptyset)$. (iii) \emph{Interventional replay, algebra:} with $E=E_Q+X$, $E_Q=\Delta\Net+\Delta S$, and $R_Z=\sum_{i,j}\mathrm{LOO}^Z_{j\to i}/\sum_i\Delta Z_i$,
+\[
+R-1=\frac{(R_Q-1)\,E_Q+(R_X-1)\,X}{E}.
+\]
+\end{theorem}
+\emph{Proof.} (i) is Theorem~\ref{thm:masking}. (ii) Write $W(T)=a(T)h(\rho(T))$ with $a(T)=\sum_{j\in T}\lambda_jE[S_j^2]$, $\rho(T)=\sum_{j\in T}\lambda_jE[S_j]<1$ and $h(\rho)=1/(2(1-\rho))$ convex and increasing (Pollaczek--Khinchine). The marginal $W(T\cup\{j\})-W(T)=a_jh(\rho_T+\rho_j)+a(T)[h(\rho_T+\rho_j)-h(\rho_T)]$ is a sum of nonnegative terms that are nondecreasing in $T$; so $W$ is supermodular. For supermodular $W$ with $W(\emptyset)=0$, $W(N)=\sum_j[W(S_j\cup\{j\})-W(S_j)]\le\sum_j[W(N)-W(N\setminus\{j\})]$ along any ordering $S_j$ of predecessors. (iii) Leave-one-out and totals are additive across the components of $E$. \hfill$\square$
+\begin{remark}
+We make no universal claim about Wi-Fi channel access: (ii) is a stylised single-server statement, and for the simulator the super-additivity of the queueing part is tested, not assumed (Section~\ref{sec:val-dich}).
+\end{remark}
+
+\section{A stochastic baseline: Poisson flows}\label{sec:poisson}
+Stochastic resequencing models are standard~\cite{baccelli1984resequencing,han2005resequencing}; we include a closed form for the blocking game only as an exact baseline against which the trace-level machinery and the simulator can be checked, not as a standalone result. Consider flows $j$ that are Poisson with rate $\lambda_j$, each packet taking an independent path delay $d$ with law $F_j$ (``infinite-server'' paths), sequence numbers assigned in send order. Let $\mu_j(x)=E[(d_j-x)^+]$ and $\Lambda_j(x)=\lambda_j\mu_j(x)$, and consider a tagged packet of flow $i$ sent at time~$0$ with delay $d_0\sim F_i$.
+\begin{theorem}[Expected blocking and blame]\label{thm:poisson}
+(a) The expected cross-blocking when the coalition $T$ of other flows is present is
+\[
+v(T)=\int_0^\infty F_i(x)\,e^{-\Lambda_i(x)}\Bigl(1-e^{-\sum_{j\in T}\Lambda_j(x)}\Bigr)dx .
+\]
+(b) The expected Shapley blame of flow $j$ is
+\[
+\bar\phi_j=\int_0^\infty F_i(x)e^{-\Lambda_i(x)}\bigl(1-e^{-\Lambda_j(x)}\bigr)\int_0^1\prod_{k\ne i,j}\bigl(1-t\,(1-e^{-\Lambda_k(x)})\bigr)\,dt\,dx,
+\]
+and $\sum_j\bar\phi_j=v(N\setminus\{i\})$.
+\end{theorem}
+\emph{Proof.} Packets of flow $j$ sent before time~$0$ and their arrival times form, by the displacement theorem for Poisson processes, an independent Poisson process; the expected number arriving after $x\ge0$ is $\lambda_j\int_0^\infty P(d_j>x+s)ds=\Lambda_j(x)$, so $P(M_j\le x)=e^{-\Lambda_j(x)}$ and the $M_j$ are independent. The own-flow completion time is $b=\max(d_0,M_i)$ with $P(b\le x)=F_i(x)e^{-\Lambda_i(x)}$, independent of $M_T=\max_{j\in T}M_j$. By Theorem~\ref{thm:airport}, $X(T)=(M_T-b)^+=\int_0^\infty\mathbf 1[b\le x<M_T]dx$, and taking expectations gives (a). For (b), the Shapley value is linear in the game, so the expected airport-Shapley blame is the Shapley value of $v$. For each $x$ the game $T\mapsto1-\prod_{j\in T}q_j$, $q_j=e^{-\Lambda_j(x)}$, has multilinear extension $W(p)=1-\prod_k(1-p_k(1-q_k))$, and Owen's formula~\cite{owen1972multilinear} gives $\phi_j=\int_0^1\partial_jW(t,\dots,t)\,dt$. \hfill$\square$
+
+\section{Validation}\label{sec:val}
+\paragraph{Design.} Studies~5 and~6 were preregistered (hypotheses, thresholds, seeds, hashed and committed before any confirmatory run; exploratory analyses declared in hashed amendments before the run; the Study~6 amendment adding timers, the bounded-error comparison and the certificate was written before hashing, in response to an adversarial review). Runners refuse to execute if a hash has changed or results exist. Intervals are bootstrap percentile intervals over seeds. ``Oracles'' are label-free exact identities.
+
+\subsection{Reference-receiver oracles on the project simulator (H16)}\label{sec:val-exact}
+O1 release time equals the prefix maximum; O2 cross-blocking equals the maximum lateness; O3 closed-form Shapley equals subset-enumeration Shapley and sums to $X_k$; O4 \emph{truncate and rebuild}: delete flows from the trace, run the unmodified \texttt{BlockAckReceiver}, compare with $\max_{j\in T}\ell_{j,k}$; O5 the releaser blame from lateness equals the simulator's own attribution; O6 $\sum\mathrm{LOO}\le X\le\sum\ell$ and the formula of Theorem~\ref{thm:masking}; O7 core membership. Data: \FvSimRuns{} simulator runs (S4 and S8; FIFO and FullSASP; two operating points) and \FvGenRuns{} runs of two non-Wi-Fi generators (G2: five streams multiplexed on one ordered connection with loss and retransmission delay; G3: heavy-tailed Pareto paths), 300 packets each.
+\begin{table}[h]
+\centering\footnotesize
+\input{tab_h16.tex}
+\caption{H16 (\tagC{}): oracle errors over all runs. ``one late flow'' is the share of blocked packets with exactly one late flow. Maximum error over O1--O6; tolerance $10^{-9}$; O6/O7 violation counts \FvViol{}. Cells are (load multiplier, link-2 extra delay in ms).}
+\end{table}
+All oracles hold (maximum error \FvMaxErr{}, \FvViol{} violations), including the generators, and no run had a forced window advance. In the simulator cells \FvSingleSimMin{}--\FvSingleSimMax{} of blocked packets have exactly one late flow, so by Proposition~\ref{prop:coincide} the three blame rules coincide there; in G2 and G3 only \FvSingleGenA{}--\FvSingleGenB{} do.
+
+\subsection{Forced release: windows, timers and loss (H20, H21)}\label{sec:val-forced}
+\begin{table}[h]
+\centering\footnotesize
+\input{tab_s6g4.tex}
+\caption{H20/H21 (\tagC{}): 18 receiver configurations, 50 traces each. Forced events are window advances plus timer expiries; ``blocked from skipped slot'' is the share of blocked packets whose largest lateness comes from a slot that was resolved early; ``certified'' is the share of delivered packets certified by Proposition~\ref{prop:applic}.}
+\end{table}
+Generator G4 (Poisson sends, heavy-tailed delays, permanent loss with probability $0.05$ or $0$, window $W\in\{8,16,64\}$, hold timer $\tau\in\{\text{none},3,10\}$~ms) was passed through the receiver of Section~\ref{sec:forced}: \FvSxTraces{} traces, \FvSxPackets{} packets, \FvSxEvents{} forced events, \FvSxEventShare{} of traces with at least one. \textbf{H20 confirmed:} the release law of Theorem~\ref{thm:window} has error $0$ for every released packet and the delivered set has \FvSxMis{} mismatches. \textbf{H21 confirmed:} on effective arrivals the oracles of Section~\ref{sec:val-exact} hold (maximum error \FvSxErr{}, \FvSxViol{} violations); on the loss-free configurations the bounds of Corollary~\ref{cor:bound} have \FvSxTenViol{} violations (the largest observed blame change is \FvSxTenRatio{} of the bound); the certificate has \FvSxFalse{} false rejections. The certificate is conservative in the other direction: only \FvSxCert{} of delivered packets are certified in these stress traces (\FvSxSkipCert{} packets are certified although an earlier slot was skipped), and \FvSxSkipMin{}--\FvSxSkipMax{} of blocked packets owe their largest lateness to a skipped slot, which is why the reference theory alone is not enough once forced releases occur. The timer receiver is our reference implementation, so the timer part tests the law against our reading of (R3), not against a third-party timer.
+
+\subsection{A second implementation: ns-3's reorder buffer (H22--H24)}\label{sec:val-ns3}
+The frozen ns-3.47 experiment (patched with observer hooks that record reorder-buffer events without changing its logic) exposes the per-packet insert and release times of ns-3's own recipient Block-Ack reorder buffer, third-party code. We ran \FvNsSixRuns{} scripted three-flow scenarios (two asymmetry conditions, two load scales, 40 seeds, FIFO) with Poisson traffic. \textbf{H22 confirmed:} for all \FvNsSixPackets{} packets checked (\FvNsSixBlocked{} blocked) the release law of Lemma~\ref{lem:release} holds with error \FvNsSixErr{} ms and \FvNsSixViol{} violations; no run had a forced advance (\FvNsSixExcl{} excluded). \textbf{H23 confirmed:} our unmodified \texttt{BlockAckReceiver}, fed with ns-3's arrival times, reproduces ns-3's release times with error \FvNsSixPy{} ms (\FvNsSixPyMis{} mismatches), and the airport oracles hold on these arrivals (maximum error \FvNsSixOr{}). \textbf{H24 confirmed:} the trace reproduces the binary's own cross- and within-wait columns to \FvNsSixHc{} and \FvNsSixHw{} ms, and the maximum buffer occupancy reconstructed from the trace equals ns-3's own in \FvNsSixOcc{} runs. Among blocked packets \FvNsSixMultiMin{}--\FvNsSixMultiMax{} have two or more late flows (the high end at the higher load): most blocked packets in ns-3 also have a single late flow. What this does and does not show: the receiver semantics are independent of ours, while the traffic, scenarios and metrics are ours, and ns-3's own forced-release mechanism (block-ack-request driven) never occurred and is not covered.
+
+\paragraph{A definition gap we found and measured (D2).}
+ns-3's \texttt{cross\_wait\_ms} charges the \emph{whole} wait of a packet to a cross-flow binding blocker, whereas the pure cross-blocking $X$ excludes the self part. The companion studies used the ns-3 column as ``$X$''. On the main-campaign configuration for conditions A1 and A2 at loads L0--L2 (two flows, 60 runs, FIFO; condition A0 was not measured) the pure $X$ is \FvDtwoRatioAll{} of the ns-3 quantity overall and at least \FvDtwoRatioMin{} in every cell (self-blocking is \FvDtwoSX{} of $X$), so for these conditions the earlier ns-3 ``$X$'' overstates the pure $X$ by about one percent at most.
+\begin{table}[h]
+\centering\small
+\input{tab_s6d2.tex}
+\caption{D2 (descriptive): pure cross-blocking $X$, self-blocking $S$ and ns-3's cross wait for the latency-sensitive flow, main-campaign configuration, 10 seeds per cell.}
+\end{table}
+
+\subsection{Sub-additive reordering, super-additive queueing (H17)}\label{sec:val-dich}
+All 15 coalitions of the S4 system were replayed (keyed random numbers), 100 seeds in each of two cells.
+\begin{table}[h]
+\centering\small
+\input{tab_h17.tex}
+\caption{H17 (\tagC{} for $R_Q$; $R_X$ is \tagE{}): non-additivity ratios of Theorem~\ref{thm:dichotomy}(iii), interventional replay, seed-cluster intervals. The coalition identity gap is at most \FvIdGapB{} and replay-signature violations are \FvSigA{}.}
+\end{table}
+H17a (preregistered): the interval of $R_Q$ lies above one in both cells; \textbf{confirmed}. The replay cross-blocking part has $R_X=\FvRXA{}$ \FvRXACI{} and $\FvRXB{}$ \FvRXBCI{} (the second interval includes one), consistent with Theorem~\ref{thm:dichotomy}(i) but not an additional confirmation, because that statement is exact only for frozen traces. As exploratory X9, the closed-form blame of the full-run trace differs from the replay Shapley of the cross-blocking component by a relative $L^1$ error of \FvNineErrA{} \FvNineErrACI{} and \FvNineErrB{} \FvNineErrBCI{}; against the replay Shapley of \emph{total} delay it is \FvNineEA{} and \FvNineEB{}, because cross-blocking is only \FvShareXA{} and \FvShareXB{} of the externality in these cells.
+
+\subsection{Stability (H18, X12, X13)}\label{sec:stab}
+Independent uniform noise of half-width $\epsilon\in\{0.01,0.1,1\}$ ms was added to every arrival timestamp and the blame recomputed.
+\begin{table}[h]
+\centering\footnotesize
+\input{tab_stab.tex}
+\caption{Stability (H18 cells C1--C3 at $\epsilon=0.1$ ms and exploratory X12 cells C5, G2, G3). Mean $L^1$ change of the per-packet blame vector over blocked packets; maximum over packets of (change of blame)/($L^1$ change of lateness).}
+\end{table}
+H18a (exact): zero violations of Theorem~\ref{thm:stability}(a),(b) in all conditions (\FvBoundViol{}); \textbf{confirmed}. H18b (preregistered: releaser blame changes more than Shapley blame on average) is \textbf{not confirmed}: in \FvStabTies{} of \FvStabCells{} simulator cell-levels the two changes are identical (one late flow), and on the generators the releaser change is smaller at small $\epsilon$ (at $\epsilon=0.1$ ms: Shapley \FvStabGtwoSh{}, releaser \FvStabGtwoRel{} in G2; the sign flips at $\epsilon=1$ ms with an interval including zero). The valid statement is the worst case: the ratio of blame change to lateness change never exceeded \FvRatioSh{} for Shapley (bound $2$) but reached \FvRatioRel{} for the releaser rule (X13, \tagE{}).
+
+\subsection{Stochastic baseline (H19, X15)}\label{sec:val-poisson}
+Eight parameter sets (one to four competing flows; link mixtures, deterministic and heavy-tailed delays) were simulated with $10^5$ draws each. The closed forms of Theorem~\ref{thm:poisson} agreed with Monte Carlo within \FvMaxZ{} standard errors over \FvNQuant{} quantities and the Shapley sums equalled $v(N\setminus\{i\})$ to \FvEffGap{} (relative). \textbf{H19 is nevertheless not confirmed as preregistered:} the numerical-convergence criterion (doubling the quadrature grid changes every value by less than $10^{-6}$) was exceeded, by up to \FvQuadMax{}, in two sets, because of the quadrature of non-smooth integrands (a deterministic delay gives a step distribution function). A post hoc refinement (\tagP{}, \texttt{posthoc\_h19\_refine.py}) shows the heavy-tailed set converging to \FvRefDriftS{} (maximum $|z|$ unchanged at \FvRefZS{}) and the deterministic-delay set converging slowly (\FvRefDriftP{} between the two finest grids, $|z|\le\FvRefZP{}$): we attribute the failure to numerical integration, not to the theorem.
+\begin{table}[h]
+\centering\small
+\input{tab_x15.tex}
+\caption{X15 (\tagE{}): a-priori prediction in the Python simulator (S4 FIFO) from flow rates and the empirical delay law of calibration seeds, against observed cross-blocking on held-out seeds; blame error is the relative $L^1$ error of the 12-entry blame matrix.}
+\end{table}
+As a predictor (X15, exploratory) the model, which assumes independent delays and send-order sequence numbers, overestimates mean cross-blocking by about $20$--$33\%$ ($\FvPredA{}$, $\FvPredB{}$, $\FvPredC{}$ in three cells; the lowest-load interval is wide) with a blame-matrix relative $L^1$ error of $\FvPredErrC{}$--$\FvPredErrA{}$: an order-of-magnitude predictor, not a calibrated model.
+
+\subsection{Bridge results from the companion studies}
+For the counterfactual level the companion studies give (all simulation): pinned disjoint links make trace and intervention agree (gap \TenGapPinned{} against \TenGapShared{} for shared links; one preregistered exact check failed with a single-row diagnosis); in ns-3 the cross-blocking share of the externality ranges from \ElevenMin{} to \ElevenMax{} across nine conditions, so it is regime dependent; the explained-fraction bound (Proposition~\ref{prop:cert}) had violations in \FourPyViol{} held-out Python cells and in \FourNsViol{} ns-3 cells (at the point estimate), and $q$ ranked the cells with Spearman $\rho=\FourRho$ (\FourRhoCI{}; within platform \FourRhoPy{} and \FourRhoNs{}); an aligned decision test found no advantage of Shapley over trace-level blame for choosing a flow to remove (\tagE{}).
+
+\section{Scope, assumptions and limitations}\label{sec:scope}
+\paragraph{What the theory covers.} The reference receiver (Definition~\ref{def:ir}); receivers with an arrival-triggered window advance and a hold timer (Theorem~\ref{thm:window}); frozen-trace coalitions. It does not cover ns-3's block-ack-request-driven release, duplicates (not injected in any stress trace), reordering metrics other than blame, or any hardware behaviour.
+\paragraph{Timestamps.} Lateness uses arrival times at the reorder buffer, available on the receiving device but not from the air; Theorem~\ref{thm:stability} bounds the lateness-to-blame map, not a measurement chain. Charging a forced release to the owner of a never-received slot needs sender-side information (Section~\ref{sec:forced}).
+\paragraph{Why Shapley.} Dubey's characterisation makes Shapley the unique rule with efficiency, symmetry, null-player and additivity on this class~\cite{dubey1982airport}; the releaser rule is not continuous (Theorem~\ref{thm:stability}(c)) and charges one of several tied flows (Example~\ref{ex:tie}). Other allocations (nucleolus, serial rules) answer other questions; we did not compare them.
+\paragraph{Depth.} The release law is classical and the structure theorem is short. The contribution is the identification and its consequences (closed form, degeneracy of the alternatives, forced-release extension with a bound and a certificate, stability), each proved and tested; reviewers may rate the technical depth as modest.
+\paragraph{Evidence base.} One purpose-built simulator, synthetic generators, and ns-3.47's reorder buffer with our scenarios; no hardware, no public external trace, no reordering-metric comparison (reorder density, buffer-occupancy density). The ns-3 forced-release regime was never exercised, and the timer receiver is ours. In the simulator and in ns-3 most blocked packets have a single late flow, so the practical difference between blame rules is small there; it matters in multi-blocker regimes (the generators; the high-load ns-3 cells). We make no claim that blame-guided scheduling improves delay.
+\paragraph{Failures and null results kept in the paper.} The Study~2 validity control failed; one preregistered exact check (V7) failed with a single-row diagnosis; one preregistered design (H12) was flawed; H18b and H19 were not confirmed as preregistered; the certificate is conservative.
+
+\section{Conclusion}
+A receiver trace tells us what a packet waited for; the airport structure tells us exactly how that wait is composed across flows, and the composition survives the forced releases of windows and timers once arrivals are replaced by resolution times. The result is an exact, replay-free Shapley blame with a closed form, a precise statement of why leave-one-out and the releaser rule are degenerate, an explicit bound and certificate for forced release, a worst-case stability bound, and independent confirmation on ns-3's reorder buffer. The claims are bounded by what failed or was not done: the stability advantage is worst-case only, most blocked packets in the studied systems have a single late flow, the certificate is conservative, and hardware, duplicates and ns-3's own forced release remain untested.
+
+\section*{Reproducibility}
+All materials are in \texttt{validation/pairing/}. Study 5: preregistration commit \texttt{f1707f4} (SHA-256 \texttt{3fff5423\dots}), exploratory plan and runner \texttt{d67c97b} (\texttt{01390d8a\dots}), results \texttt{eaada31}. Study 6: preregistration, library, runner and tests \texttt{238bb68} (\texttt{8ccbee59\dots}), results \texttt{aa0670c}. Raw-file hashes: \texttt{results/STUDY5\_RAW.sha256}, \texttt{results/STUDY6\_RAW.sha256}. Libraries \texttt{airport.py} (frozen at the Study~5 preregistration commit), \texttt{airport\_fast.py}, \texttt{study6.py}; tests \texttt{tests/test\_study5.py}, \texttt{tests/test\_study6.py}. ns-3 per-packet traces are regenerated deterministically from the stored seeds and scripts. Companion studies and hashes are listed in the measurement paper. Numbers: \texttt{paper/theory/make\_numbers\_theory.py}.
+
+\section*{Code and data availability}
+All code, preregistrations, raw result files, hashes and the decision log are in the project repository under \texttt{validation/pairing/}; start with \texttt{README.md}, which lists every study, command and hash file. Simulator source is \texttt{src/mlo\_sim/}; the ns-3.47 experiment and its patches are in \texttt{validation/ns3/}. A public archive link will be added at submission: [URL to be added].
+
+\section*{Declarations}
+Funding and competing interests: [to be completed by the authors]. Use of AI assistance: an AI coding assistant (Claude Code) was used to write and run code, draft text and perform the audits described in the repository; the authors are responsible for the content. No human annotation and no model-based judge were used in any evaluation.
+
+\bibliographystyle{plain}
+\bibliography{refs_theory}
+\end{document}

@@ -8,3 +8,23 @@ paper/*.blg
 paper/*.bbl
 paper/*.out
 backup_*/
+validation/ns3/ns-3.47/
+validation/ns3/build/
+validation/ns3/downloads/
+
+# ns-3 validation: third-party source/build trees and downloads are reproduced by validation/ns3/fetch_ns3.sh + build_ns3.sh
+validation/ns3/ns-3.47/
+validation/ns3/ns-3.47.dbg/
+validation/ns3/ns-3.47.stock/
+validation/ns3/ns-3.47.agy_invalid_tree/
+validation/ns3/downloads/
+validation/ns3/tests/policy_driver
+**/__pycache__/
+validation/pairing/paper/**/*.aux
+validation/pairing/paper/**/*.log
+validation/pairing/paper/**/*.bbl
+validation/pairing/paper/**/*.blg
+validation/pairing/paper/**/*.out
+validation/pairing/paper/**/*.fls
+validation/pairing/paper/**/*.fdb_latexmk
+validation/pairing/paper/**/build*.log

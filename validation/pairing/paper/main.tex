@@ -1,0 +1,273 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{booktabs,amsmath,amssymb,amsthm,graphicx,url,array,xcolor}
+\usepackage[colorlinks=true,linkcolor=blue!50!black,citecolor=blue!50!black,urlcolor=blue!50!black]{hyperref}
+\input{numbers.tex}
+\newcommand{\tagC}{\textsc{conf}}
+\newcommand{\tagE}{\textsc{expl}}
+\newcommand{\tagP}{\textsc{pre-existing}}
+\newcommand{\tagA}{\textsc{analytic}}
+\newtheorem{proposition}{Proposition}
+
+\title{When Does a Trace Say Who Is Responsible?\\Interventional Externality Accounting and a Single-Trace Certificate\\for Cross-Flow Reordering Delay in Multi-Link Wi-Fi}
+\author{Adhyan Jain\thanks{Corresponding author; affiliation and email to be added.} \and Atharva Sheersh Pandey \and Kshitij Manikshete\\[2pt]\small [Institution, department, city, country: to be added]}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Multi-link Wi-Fi~7 devices resequence the packets of several flows in one Block-Ack reorder buffer, so a slow link can delay packets of unrelated flows.
+Simulation studies report this \emph{cross-blocking} from receiver traces, which keeps every transmission time fixed.
+We ask when such a trace figure is a faithful measure of how much one flow \emph{hurts} another.
+We define the \emph{interventional externality} (the delay a flow suffers because another flow exists, by exact counterfactual replay), prove an identity splitting it into queueing, self-reordering and cross-reordering parts, give a boundary condition under which trace and intervention coincide, and prove a one-sided \emph{single-trace certificate}: the observable share $q$ of a flow's delay that is cross-blocking never exceeds the share $r$ of the externality that cross-blocking explains.
+In preregistered tests on \FourDefined{} held-out cells from two simulators the certificate had \FourPyViol{} violations in the Python simulator (exact) and \FourNsViol{} in ns-3.47, and $q$ ranked the cells with Spearman $\rho=\FourRho$ (\FourRhoCI{}; within-platform \FourRhoPy{} and \FourRhoNs{}).
+The share itself is regime dependent: cross-blocking explained \SBrFour{} of the externality at one heavy-load point (a preregistered test whose low-load validity control failed), \SBBCrossMin{}--\SBBCrossMax{} across a Python sweep, and \ElevenMin{}--\ElevenMax{} across nine ns-3 cells, where a preregistered replication of the small-share finding failed.
+Pinning flows to disjoint links makes trace and intervention agree (gap \TenGapPinned{}, against \TenGapShared{} for shared links).
+Trace-level blame ranked offenders poorly against Shapley attribution, but an aligned decision test found no evidence that Shapley attribution is the better guide to removing a flow.
+All results are simulation only.
+\end{abstract}
+
+\section{Introduction}
+When several flows share a reorder buffer, packets of one flow can wait for earlier-numbered packets of another that are still in flight on a slower link.
+Wi-Fi~7 multi-link operation (MLO)~\cite{ieee80211be2024} makes this concrete: Block-Ack state and the sequence-number space are shared across links, and links differ in delay and load.
+The MLO literature we found concentrates on traffic allocation across links, contention anomalies and analytical delay models~\cite{lopezraventos2022mlo,carrascosa2023understanding}; multipath-TCP schedulers target blocking \emph{within} a flow.
+We found no work that asks which \emph{other flows} are responsible for a flow's reordering delay, how large that responsibility is compared with ordinary queueing, or when a receiver trace is enough to tell.
+
+The decomposition used in the audited codebase, and implicitly in the studies we surveyed, computes cross-blocking from a trace: the extra wait of a packet after all earlier packets of its own flow have arrived.
+That is a counterfactual only about the \emph{receiver}: every transmission time stays as observed.
+The question a scheduler designer or operator asks is different: remove the other flow and let the system run again.
+The two can differ because another flow's presence also changes queueing and link contention.
+Our own simulator audit gave the first hint: a flow's self-blocking was exactly invariant when its competitor's records were deleted from a trace, but changed by \HFourRatioFIFO{} when the competitor was removed from the system (Section~\ref{sec:audit}).
+
+\paragraph{Contributions, ranked by strength of evidence.}
+\begin{enumerate}
+  \item \textbf{A measurement concept with an exact accounting identity} (Propositions~\ref{prop:id}--\ref{prop:eff}): the interventional externality, its split into queueing/service, self- and cross-reordering parts, and Shapley attribution over flows. Machinery checks are exact: Shapley efficiency gap \SBVone{}, replay-signature violations \SBVtwo{} (\tagC{}); identity gap \SBBIdentity{} and a solo-flow control equal to \SBBSolo{} (\tagE{}); on the held-out data of Study~4 the identity gap is at most \FourVTenGap{} over \FourVTenRows{} rows and replay-signature violations are \FourVTenSig{} (\tagC{}).
+  \item \textbf{A single-trace certificate} (Proposition~\ref{prop:cert}). From one trace of the full system, $q=X/\mathrm{e2e}_{\rm obs}$ is a lower bound on the explained fraction $r=X/E$. Held-out test: \FourPyViol{} violations in the Python simulator, \FourNsViol{} in ns-3 at the point estimate; Spearman $\rho=\FourRho$ (\FourRhoCI{}) between $q$ and $r$ (\tagC{}). The certificate is loose when $q$ is small (median $r/q$ \FourRatioMedPy{} in the Python cells).
+  \item \textbf{The trace figure is a regime-dependent proxy, not a constant.} Cross-blocking explains \SBBCrossMin{}--\SBBCrossMax{} of the externality across a Python load--asymmetry sweep (\tagE{}) and \ElevenMin{}--\ElevenMax{} across nine ns-3 conditions (\tagC{}: the preregistered claim that the share is small did \emph{not} replicate).
+  \item \textbf{A boundary condition.} With flows pinned to disjoint links trace and intervention agree (Proposition~\ref{prop:cond}; gap \TenGapPinned{} \TenGapPinnedCI{} versus \TenGapShared{} on shared links; \tagC{}, with one preregistered exact check failing, Section~\ref{sec:s3}).
+  \item \textbf{Negative and null results that bound the framing.} Trace blame ranks flows poorly against Shapley blame (Kendall $\tau=\SBtauFour$, \tagC{} with a failed validity control), externalities are strongly non-additive ($R=\SBRFour$, familiar from queueing~\cite{naor1969tolls}), and an aligned decision test found no advantage for Shapley blame (\tagE{}).
+  \item \textbf{Simulator and evaluation audit} (Section~\ref{sec:audit}): preregistered oracles found a specification defect (two loss draws per attempt) and imprecise small-sample effect sizes (\tagC{}, \tagE{}).
+\end{enumerate}
+
+\paragraph{What we do not claim.} We do not claim that scheduling by externality improves performance; that cross-blocking is small (or large) in real networks; that the Shapley value is the right attribution; that $q$ estimates $r$ numerically; that results transfer to hardware; or that the ns-3 runs are independent of this project's modifications (they use a patched ns-3.47 build). No human annotation and no model-based judge were used.
+
+\section{Related work and positioning}
+Searches were limited, not exhaustive; novelty statements are \emph{to our knowledge}.
+\begin{itemize}
+  \item \textbf{MLO studies.} Traffic allocation and congestion-aware load balancing~\cite{lopezraventos2022mlo}, delay anomalies~\cite{carrascosa2023understanding}, and analytical delay models (e.g.\ arXiv:2212.12420, \emph{Delay Analysis of IEEE 802.11be Multi-link Operation under Finite Load}) evaluate or predict delay per link or per device. We did not find one that attributes receiver-side reorder blocking to the flows causing it, or that asks when a trace-level figure is sufficient.
+  \item \textbf{Multipath transport.} Schedulers for multipath TCP reduce blocking within a flow by estimating waiting time on the faster path (surveyed in arXiv:2309.09372). Cross-flow responsibility is outside their objective.
+  \item \textbf{Queueing externalities.} Naor~\cite{naor1969tolls} showed that a customer's private cost ignores the delay imposed on others and priced it with tolls. Our externality is the same idea in a system with a shared resequencer, where the delay imposed splits into queueing and reordering parts.
+  \item \textbf{Attribution.} Shapley~\cite{shapley1953value} gives a unique allocation under efficiency, symmetry, null-player and additivity axioms. We use it to allocate a flow's externality among the other flows; we did not find prior use for scheduling or reordering delay.
+  \item \textbf{Counterfactual replay.} Fixing exogenous noise to compare policies is common random numbers~\cite{glasserman1992crn} and, in sequential decision problems, counterfactual trajectories~\cite{oberst2019counterfactual}. We key per-packet noise by flow, index and attempt, so removing a flow leaves every other flow's draws unchanged.
+  \item \textbf{Testing and credibility.} Metamorphic relations~\cite{chen2018metamorphic} and simulation-credibility surveys~\cite{kurkowski2005manet} motivate the oracle battery of Section~\ref{sec:audit}; right-censoring~\cite{kaplan1958nonparametric} handles packets in flight at the horizon.
+\end{itemize}
+Reference entries inherited from earlier project notes that we could not verify were left out.
+
+\section{Concept}
+\paragraph{Setting.} Flows $N=\{1,\dots,n\}$ share links and one resequencer that releases packets in sequence-number order. For a flow $i$ and a coalition $C\ni i$ of flows present in the system, let $\mathrm{Net}_i(C)$, $S_i(C)$ and $X_i(C)$ be the means, over flow $i$'s delivered packets, of: physical-arrival delay (arrival at the receiver minus arrival at the transmit queue), self-blocking (wait after the packet arrived caused by earlier packets of $i$), and cross-blocking (wait after all earlier packets of $i$ arrived, caused by other flows' packets). Per packet, $\mathrm{e2e}=\mathrm{Net}+S+X$.
+
+\paragraph{Interventional externality.} Replaying the system with identical per-flow arrivals and per-packet noise for every coalition, define $D_i(C)$ as the mean end-to-end delay of flow $i$ in $C$ and
+\[
+E_i = D_i(N)-D_i(\{i\}),\qquad E_{j\to i}^{\rm LOO}=D_i(N)-D_i(N\setminus\{j\}).
+\]
+\begin{proposition}[Accounting identity]\label{prop:id}
+$E_i=\Delta\mathrm{Net}_i+\Delta S_i+\Delta X_i$ with $\Delta Z_i=Z_i(N)-Z_i(\{i\})$, and $X_i(\{i\})=0$, so $\Delta X_i=X_i(N)$ is exactly trace-level cross-blocking.
+\end{proposition}
+\emph{Proof.} Per-packet e2e is the sum of the three terms; take means over delivered packets in $N$ and in $\{i\}$ and subtract. A single flow cannot be cross-blocked. \hfill$\square$ (\tagA{}; checked numerically in Sections~\ref{sec:s2b} and~\ref{sec:s4}.)
+
+\paragraph{Shapley blame.} With players $N\setminus\{i\}$ and $v_i(T)=D_i(T\cup\{i\})-D_i(\{i\})$, let $\phi_{j\to i}$ be the Shapley value of $j$.
+\begin{proposition}[Efficiency]\label{prop:eff}
+$\sum_{j\ne i}\phi_{j\to i}=E_i$. \hfill (\tagA{}; verified to \SBVone{} on every victim in Study~2.)
+\end{proposition}
+\paragraph{Trace-level blame.} Each blocked packet's cross-blocking is attributed to the flow of the packet whose arrival released it, giving $T_{j\to i}$ with $\sum_jT_{j\to i}=X_i(N)$.
+\begin{proposition}[When trace-level equals interventional]\label{prop:cond}
+If adding or removing flow $j$ changes neither the physical-arrival times nor the sequence numbers of flow $i$'s packets for any $j\neq i$ (for example flows pinned to disjoint links), then $\Delta\mathrm{Net}_i=\Delta S_i=0$ and $E_i=X_i(N)$.
+\end{proposition}
+Immediate from Proposition~\ref{prop:id}. In a work-conserving system with shared links it fails because another flow's presence changes queueing. Study~3 tests it (Section~\ref{sec:s3}).
+
+\paragraph{Explained fraction and the certificate.} For a flow (or a cell, as a ratio of sums) with $E>0$ define the \emph{explained fraction} $r=X/E$, the share of the externality that trace-level cross-blocking accounts for, and the \emph{observable share} $q=X/\mathrm{e2e}_{\rm obs}$, where $\mathrm{e2e}_{\rm obs}=D(N)$ is the mean delay measured in the full system. Only $q$ can be computed from a single trace.
+\begin{proposition}[Single-trace certificate]\label{prop:cert}
+Let $E>0$ and let $d_{\min}\le D_i(\{i\})$ be any known lower bound on the flow's solo delay ($d_{\min}=0$ is always valid). Then
+\[
+r\;\ge\;q^{d_{\min}}:=\frac{X}{D(N)-d_{\min}}\;\ge\;q .
+\]
+\end{proposition}
+\emph{Proof.} $E=D(N)-D(\{i\})\le D(N)-d_{\min}$ and $X\ge0$; $E>0$ gives $D(N)-d_{\min}>0$. The same holds for ratios of sums over flows and seeds. \hfill$\square$ (\tagA{}.)
+The bound is one-sided. A large $q$ certifies that trace-level cross-blocking explains at least that share of the externality; a small $q$ certifies nothing, since $r$ can be arbitrarily larger. In an estimated setting, where $E$ is a difference of independent noisy means as in ns-3, the guarantee holds only up to estimation noise, so we test it at the point estimate and report violations.
+
+\section{Studies and design}
+Every confirmatory study was preregistered: hypotheses, thresholds and validity checks were written, hashed (SHA-256) and committed to the repository before the corresponding data were generated; amendments are separate hashed files; runners refuse to execute if a hash has changed or if results already exist. Exploratory analyses were declared before they were run and are labelled as such; no number below is both exploratory and described as confirmed. Intervals are percentile bootstraps over seeds (10{,}000 resamples; over cells where stated).
+\begin{table}[h]
+\centering\footnotesize
+\begin{tabular}{p{0.07\linewidth}p{0.4\linewidth}p{0.17\linewidth}p{0.25\linewidth}}
+\toprule
+Study & Role & Seeds & Status \\
+\midrule
+1 & audit of the simulator and protocol (H1--H6) & 7000--7099 & \tagC{} + \tagE{} \\
+2 & explained fraction, blame ranking, non-additivity (H7--H9), Python & 20000--20099 & \tagC{}, V3 failed \\
+2b & exact decomposition sweep, 12 cells & 21000--21099 & \tagE{} \\
+3 & pinned-link boundary (H10), ns-3 replication (H11), decision utility (H12), X6, X7 & Python 22000--23199, 24000--24099; ns-3 1--30 & \tagC{} (H10, H11), H12 flawed, X6/X7 \tagE{} \\
+4 & single-trace certificate on held-out cells (H13--H15) & Python 25000--25099; ns-3 31--60 & \tagC{} \\
+\bottomrule
+\end{tabular}
+\caption{Studies. Commits and hashes are in the Reproducibility section.}
+\end{table}
+
+\paragraph{System and replay.} The simulator (\texttt{src/mlo\_sim}) has Poisson flows, two links with backoff and frame errors, a 64-entry Block-Ack window and a sequence-ordered receiver. The primary scale S4 has four flows (weights 1,1,50,50; 200 packets/s each); S8 has eight (100 packets/s each); runs last 300~ms. Every coalition is replayed with the \emph{keyed} design: arrivals from one stream per flow and each channel draw keyed by (seed, flow, per-flow index, attempt, purpose), so a flow's arrivals and noise are identical in every coalition containing it. S4 needs 15 coalitions per seed, S8 needs 255.
+
+\paragraph{ns-3.47.} The ns-3 experiments use a patched ns-3.47 build (\texttt{sasp-mlo-experiment}) with one latency-sensitive flow and one bulk flow over two links, nine conditions (three asymmetry levels A0--A2 times three loads L0--L2) in Study~3 and two conditions with three bulk fractions in Study~4 (10~s runs, 30 seeds per arm). Because ns-3 noise is not coupled between the with-bulk and without-bulk runs, the externality there is a difference of independent means. The without-bulk arm uses a negligible bulk rate ($10^{-6}$~Mbit/s, since a rate of zero stalls the binary; a preregistered amendment), and a check confirms that no bulk packets were sent and no cross-blocking occurred in those runs.
+
+\section{Study 2: explained fraction, blame, non-additivity (preregistered)}\label{sec:s2}
+H7: the explained fraction (ratio of sums) has a CI upper bound below 0.5. H8: mean Kendall $\tau_b$ between trace and Shapley blame has a CI upper bound below 0.5. H9: the non-additivity ratio $R=\sum E^{\rm LOO}/\sum E$ has a CI outside $[0.8,1.2]$. Validity: V1 Shapley efficiency, V2 replay signature, V3 low-load control (explained fraction in $[0.75,1.25]$), V4 attribution completeness.
+\begin{table}[h]
+\centering\small
+\begin{tabular}{lcc}
+\toprule
+ & S4 & S8 \\
+\midrule
+H7 explained fraction & \SBrFour{} \SBrFourCI & \SBrEight{} \SBrEightCI \\
+ verdict & \SBVerdictRFour & \SBVerdictREight \\
+H8 Kendall $\tau_b$ (trace vs.\ Shapley) & \SBtauFour{} \SBtauFourCI & \SBtauEight{} \SBtauEightCI \\
+ verdict & \SBVerdictTFour & \SBVerdictTEight \\
+top-offender agreement (chance) & \SBtopFour{} (\SBchanceFour) & \SBtopEight{} (\SBchanceEight) \\
+H9 non-additivity $R$ & \SBRFour{} \SBRFourCI & \SBREight{} \SBREightCI \\
+ verdict & \SBVerdictNFour & \SBVerdictNEight \\
+mean externality / mean cross-blocking (ms) & \SBEFour{} / \SBXFour & \SBEEight{} / \SBXEight \\
+\bottomrule
+\end{tabular}
+\caption{Study 2 outcomes (\tagC{}), FIFO, 100 seeds, one heavy-load operating point. The verdicts are the preregistered rules applied literally; read them with the validity discussion below.}
+\end{table}
+
+\paragraph{Validity checks.} V1 (efficiency gap \SBVone{}), V2 (\SBVtwo{} replay-signature violations) and V4 (completeness gap \SBVfour{}) passed. \textbf{V3 \SBVthreeStatus{}}: in the low-load control the explained fraction was \SBVthree{}, outside the required 0.75--1.25. Under our own rule the method is therefore not validated by this control, and H7--H9 carry that caveat. Diagnosis (post hoc): the control was ill-posed. We expected queueing to vanish at 25\% load, but queueing externality shrinks with load without disappearing (mean externality \SBLowE{}~ms against mean cross-blocking \SBLowX{}~ms there). The check was not edited after seeing the result.
+
+\paragraph{Reading H8.} Under FIFO the flows are nearly exchangeable (Shapley blame per flow: \SBFifoBlameA{}, \SBFifoBlameB{}, \SBFifoBlameC{}, \SBFifoBlameD{}~ms), so there is little true signal to rank and $\tau$ is a weak test. Under FullSASP, whose priorities make flows unequal, the Shapley blame is \SBSaspBlameA{}, \SBSaspBlameB{}, \SBSaspBlameC{}, \SBSaspBlameD{}~ms and $\tau$ is \SBSaspTau{} (\tagE{}, seeds 20000--20099).
+
+\section{Study 2b: exact decomposition and sweep (exploratory)}\label{sec:s2b}
+Declared after Study~2 and before its run: an exact decomposition per Proposition~\ref{prop:id}, checks V5 (identity gap) and V6 (solo cross-blocking is zero), over a 4$\times$3 grid of load multipliers (1, 0.5, 0.25, 0.1) and link-2 extra delay (0.1, 2, 5~ms). Across all \SBBCells{} cells and every victim flow the identity held to \SBBIdentity{} and the solo cross-blocking was \SBBSolo{} (V5, V6 passed).
+\begin{table}[h]
+\centering\small
+\input{tab_s2b.tex}
+\caption{Study 2b (\tagE{}): shares of the interventional externality by component, FIFO, S4, seeds 21000--21099. Shares are ratios of sums; intervals are seed-cluster bootstraps.}
+\end{table}
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.5\linewidth]{fig_share.pdf}
+\caption{Cross-blocking's share of the externality (\%) against load and asymmetry (\tagE{}).}
+\end{figure}
+Queueing/service delay accounts for \SBBNetMin{}--\SBBNetMax{} of the externality across cells, self-reordering for at most \SBBSelfAbs{} in absolute value, and cross-blocking for \SBBCrossMin{} (load \SBBMinCrossLoad{}, smallest asymmetry) up to \SBBCrossMax{} (load \SBBMaxCrossLoad{}, \SBBMaxCrossAsym{}~ms asymmetry), median \SBBCrossMed{}, below 15\% in \SBBCrossBelowFifteen{} cells. The share grows with link asymmetry. This also explains the V3 failure: at 25\% load with 2~ms asymmetry the share was well below the required 0.75.
+
+\section{Study 3: boundary, replication and decision utility}\label{sec:s3}
+\paragraph{H10 (preregistered): pinned disjoint links.} Proposition~\ref{prop:cond} predicts that when flows are pinned to different links the gap $|E-X|/E$ is near zero, while for flows sharing links it is not. Result (\tagC{}, 100 seeds): gap \TenGapPinned{} \TenGapPinnedCI{} for pinned flows against \TenGapShared{} \TenGapSharedCI{} for flows sharing both links, so H10 is supported. Pinning also shrinks the externality itself (mean \TenEPinned{}~ms against \TenESharedF{}~ms; descriptive). \textbf{A preregistered exact check, V7, failed:} the maximum per-run residual $|E-X|$ on clean runs was \TenVSeven{}~ms rather than at rounding level. A post hoc diagnosis, verified in the stored rows, is that one of 200 rows had different delivered-packet counts in the full and solo runs (a packet still held in the reorder buffer at the horizon); the other 199 rows agree to rounding error. We report V7 as failed with this diagnosis.
+Exploratory X6 asked whether the pinned flows still interact through the shared sequence-number window. Dispatch stalls occurred in at most \SXSixMaxStall{} of runs, and the gap with a 64-entry window was \SXSixGapLow{} at nominal load and \SXSixGapHigh{} \SXSixGapHighCI{} at 1.4$\times$ load, where the externality is tiny (\SXSixEHigh{}~ms), so exactness holds only up to finite-horizon composition effects.
+
+\paragraph{H11 (preregistered): ns-3 replication.} Study~2 suggested that trace-level cross-blocking is a small share of the externality. H11 asked whether this holds in ns-3: it was to be called replicated if cross-blocking was a small share (interval upper bound below 0.5) in at least two thirds of defined cells, and not replicated if at least a third of cells had a share of at least one half. With \ElevenRuns{} new runs without the bulk flow, the share ranged from \ElevenMin{} to \ElevenMax{} (\ElevenMostly{} of \ElevenDefined{} cells at or above one half, \ElevenLittle{} below), so \textbf{H11 is not replicated}: the share is regime dependent and the heavy-load figure of Study~2 must not be generalised.
+\begin{table}[h]
+\centering\small
+\input{tab_s3_h11.tex}
+\caption{Study 3, H11 (\tagC{}): externality of the bulk flow on the latency-sensitive flow and the share explained by trace-level cross-blocking, ns-3.47 FIFO, 30 seeds per arm. Intervals are bootstraps over seeds, arms resampled independently.}
+\end{table}
+
+\paragraph{H12 (preregistered, flawed) and X7 (exploratory): decision utility.} H12 asked whether choosing the flow to remove by Shapley blame beats choosing it by trace blame. The preregistered gain metric weighted victims by flow weight while excluding the removed flow, which penalises removing heavy flows; we found this misalignment \emph{after} seeing the results. The formal outcome (Shapley minus trace gain \TwelveFlawSASPDiff{}, \TwelveFlawSASPCI{} under FullSASP, reversed in sign under FIFO) is therefore not used as evidence. An aligned re-test on fresh seeds (X7, \tagE{}) found no difference under FullSASP (both policies pick the same flow) and \SXSevenFifoDiff{} \SXSevenFifoCI{} under FIFO. \textbf{We therefore claim no decision advantage for Shapley attribution.}
+
+\section{Study 4: the single-trace certificate on held-out cells}\label{sec:s4}
+Exploratory inspection of the 21 cells of Studies~2b and~3 (the training set) showed $r\ge q$ in all of them and a Spearman correlation of 0.85, and led to Proposition~\ref{prop:cert}. Study~4 was preregistered on \FourCells{} fresh cells and nothing was tuned on them: 13 Python cells (four or eight flows, load multipliers, link-2 delays) and 6 ns-3 cells (two conditions, three bulk fractions, \FourNsRuns{} runs with and without bulk). The tests were:
+H13, $r\ge q$ in every defined Python cell (exact) and, counted, in ns-3 at the point estimate, also with the floor $d_{\min}=1.69$~ms for the Python simulator;
+H14, pooled Spearman$(q,r)\ge0.70$ with a cell-bootstrap lower bound above 0.40;
+H15 (descriptive), the cut-off $q\ge0.30$ frozen from the training set as a predictor of $r\ge0.5$.
+All \FourDefined{} cells were defined (externality interval above zero), so none was excluded.
+\begin{table}[h]
+\centering\small
+\input{tab_s4.tex}
+\caption{Study 4 (\tagC{}): held-out cells. Python cells: four-flow (S4) or eight-flow (S8) system, load multiplier $\lambda$ and link-2 extra delay; ratios of sums over 100 seeds and all victims. ns-3 cells: condition and bulk fraction of capacity, ratios of means over 30 seeds per arm.}\label{tab:s4}
+\end{table}
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.55\linewidth]{fig_cert.pdf}
+\caption{Study 4 (\tagC{}): observable share $q$ against explained fraction $r$ for the held-out cells; every point lies on or above the dashed line $r=q$.}
+\end{figure}
+\paragraph{Results.} H13 \textbf{confirmed}: \FourPyViol{} violations in the Python cells (also \FourPyFloorViol{} with the $d_{\min}$ floor), \FourNsViol{} in the ns-3 cells at the point estimate. H14 \textbf{confirmed}: pooled $\rho=\FourRho$ (\FourRhoCI{}). H15: precision \FourPrec{} and recall \FourRecall{} (\FourTP{} true positives, \FourFP{} false positives, \FourFN{} false negatives; only four positives, so descriptive).
+\paragraph{How to read this honestly.} (i) The pooled correlation is helped by the two platforms occupying different ranges: Python cells have $q$ of \FourPyQMin{}--\FourPyQMax{} and $r$ of \FourPyRMin{}--\FourPyRMax{}, ns-3 cells $q$ of \FourNsQMin{}--\FourNsQMax{} and $r$ of \FourNsRMin{}--\FourNsRMax{}; within platform the correlations are \FourRhoPy{} (13 cells) and \FourRhoNs{} (6 cells, no interval preregistered). (ii) The bound is loose when $q$ is small: the median ratio $r/q$ is \FourRatioMedPy{} in the Python cells (maximum \FourRatioMaxPy{}) and \FourRatioMedNs{} in the ns-3 cells. An exploratory linear fit of $r$ on $q$ has slope \FourOLSSlope{} and $R^2=\FourOLSRsq$; $q$ is a guarantee and a ranking, not an estimate. (iii) In \FourNsRAboveOne{} ns-3 cells $r>1$: the mean cross-wait exceeds the unpaired-noise estimate of the externality when that externality is only \FourNsEOverMin{}--\FourNsEOverMax{}~ms, so $r$ is not a bounded fraction under estimation noise (the certificate $r\ge q$ is unaffected).
+\paragraph{Validity.} V10 passed: \FourVTenSig{} replay-signature violations in \FourVTenRows{} rows and an identity gap of at most \FourVTenGap{} (the preregistered 5\% sample and all rows). V11 passed: every without-bulk ns-3 run sent no bulk packets and had zero cross-wait, and the runtime audit counters were clean. A first analysis run flagged the two ARP priming frames present in every run (also in all earlier campaigns) as a violation because the check was stricter than the frozen audit rule (at most 20 untagged frames); we corrected the check to the frozen rule, which did not change any hypothesis outcome.
+
+\section{Simulator and evaluation audit (Study 1)}\label{sec:audit}
+Study 1 preregistered six hypotheses about implicit invariants, with exact oracles and controls, on seeds 7000--7099.
+\begin{table}[h]
+\centering\small
+\begin{tabular}{p{0.06\linewidth}p{0.52\linewidth}p{0.3\linewidth}}
+\toprule
+ & Primary measure & Outcome \\
+\midrule
+H1 & shared-stream arrival mismatches \OneMismatchShared{}; $\Delta\rho=\DeltaRhoTwo$ \DeltaRhoTwoCI{} & \HOneVerdictTwo{} \\
+H2 & undelivered fraction \UndelFracFIFO{} (threshold \UndelThreshold) & \HTwoVerdict{} \\
+H3 & paired-CI width ratio keyed/shared \WidthRatioTwo{} & \HThreeVerdictTwo{} \\
+H4 & $|\Delta S_1|/S_1=\HFourRatioFIFO$ \HFourRatioFIFOCI{}; trace control \HFourTrace{} & violation \HFourVerdict{} \\
+H5 & loss draws/attempt $\neq1$ in \OFiveRate{}; burst length \BurstShipped{} vs.\ \BurstSingle{} & \HFiveVerdict{} \\
+H6 & violating seeds FIFO \HSixFIFO{}, FullSASP \HSixFullSASP{}, MeanOnly \HSixMeanOnly{}; leak control \HSixLeakyGlobal{} & \HSixVerdict{} \\
+\bottomrule
+\end{tabular}
+\caption{Study 1 preregistered outcomes (\tagC{}).}
+\end{table}
+The shared random stream did not desynchronise arrivals; keyed noise did not tighten paired intervals (width ratio \WidthRatioTwo{}); survivor bias was immaterial. Three consequences matter here. First, \textbf{H4}: self-blocking is invariant on a fixed trace but changed by \HFourRatioFIFO{} (about \HFourUnits{}~$\mu$s) when the competitor was removed from the system, the observation that motivated the externality concept. Second, \textbf{H5}: every attempt drew two loss variables (\OFiveRate{}), shortening burst length by \BurstRelAbs{}; in an exploratory run absolute weighted blocking under bursts changed from \XTwoMShipFIFO{} to \XTwoMSingleFIFO{} while the FIFO-to-FullSASP reduction stayed near \XTwoRedShip{} (shipped) against \XTwoRedSingle{}. Third, \textbf{effect sizes}: the scheduler's gain in $M$ from 1000 fresh seeds is \XFourDShared{} (\XFourCIShared{}) against \OldD{} (\OldDCI{}) from the earlier 30-seed campaign, \OldRatio{}$\times$ larger but with overlapping intervals (\tagE{}, \tagP{}). Pairing between arms weakens with link asymmetry under both shared and keyed streams (Figure~\ref{fig:pair}, \tagE{}) and varies from \XFiveRhoMin{} to \XFiveRhoMax{} across pre-existing ns-3 cells while offered traffic was identical in \XFiveIdentical{} of \XFiveTriples{} triples, so weak pairing reflects scheduler-induced divergence, not random-number design. The causality check passed for all real schedulers but, at release level, could not see a one-millisecond look-ahead (\HSixLeakyLocal{}); a decision-level comparison caught it in \XThreeLeakyLocal{} (\tagE{}).
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.9\linewidth]{fig_pairing.pdf}
+\caption{Across-seed correlation between FIFO and FullSASP (\tagE{}; panel b: \tagP{}).}\label{fig:pair}
+\end{figure}
+
+\section{Claim-to-evidence table}
+Tags: \tagC{} preregistered confirmatory; \tagE{} exploratory; \tagP{} analysis of pre-existing data; \tagA{} analytic.
+\begin{table}[h]
+\centering\footnotesize
+\begin{tabular}{p{0.30\linewidth}p{0.27\linewidth}p{0.15\linewidth}p{0.2\linewidth}}
+\toprule
+Claim & Evidence & Tag & Result file \\
+\midrule
+Externality splits exactly into queueing, self, cross parts & identity gap \SBBIdentity{}; held-out \FourVTenGap & \tagA{}, \tagE{}, \tagC{} & exploratory\_study2b, analysis\_study4 \\
+Shapley blame is efficient & gap \SBVone & \tagA{}, \tagC{} & analysis\_study2 \\
+Certificate $r\ge q$ holds & \FourPyViol{} Python, \FourNsViol{} ns-3 violations & \tagA{}, \tagC{} & analysis\_study4 \\
+$q$ ranks cells by $r$ & $\rho=\FourRho$ \FourRhoCI & \tagC & analysis\_study4 \\
+Cut-off $q\ge0.30$ finds $r\ge0.5$ & precision \FourPrec, recall \FourRecall & descriptive & analysis\_study4 \\
+Pinned disjoint links: trace $\approx$ intervention & gap \TenGapPinned{} vs.\ \TenGapShared & \tagC (V7 failed) & analysis\_study3\_python \\
+Cross-blocking share is regime dependent & ns-3 \ElevenMin{}--\ElevenMax; Python \SBBCrossMin{}--\SBBCrossMax & \tagC{}, \tagE{} & analysis\_study3\_ns3, exploratory\_study2b \\
+Small share at heavy load (Python only) & \SBrFour{} \SBrFourCI & \tagC (V3 failed) & analysis\_study2 \\
+Trace blame misranks flows & $\tau=\SBtauFour$ \SBtauFourCI & \tagC (V3 failed) & analysis\_study2 \\
+Externalities are non-additive & $R=\SBRFour$ \SBRFourCI & \tagC & analysis\_study2 \\
+Shapley guides removal better than trace blame & not supported (X7) & \tagE & exploratory\_study3 \\
+Self-blocking invariant only on a trace & \HFourRatioFIFO{}; control \HFourTrace & \tagC & analysis \\
+Two loss draws per attempt & \OFiveRate{} & \tagC & analysis \\
+Gain estimate shrinks with more seeds & \OldD{} vs.\ \XFourDShared & \tagE{}, \tagP{} & exploratory \\
+\bottomrule
+\end{tabular}
+\caption{Every number resolves to a stored result file through \texttt{make\_numbers.py}.}
+\end{table}
+
+\section{Discussion}
+\paragraph{What a practitioner can do with this.} Given a single simulation trace, compute $q$. If $q$ is large, the certificate guarantees that trace-level cross-blocking is at least that share of the externality, so the trace figure is a defensible summary; in our data this happened in a minority of cells (Table~\ref{tab:s4}). If $q$ is small, the trace figure may badly understate the harm one flow does another (the Python cells show $r$ up to \FourPyRMax{} while $q$ stays below \FourPyQMax{}), and a counterfactual replay is needed. Replay requires noise keyed per flow and packet so that removing a flow leaves the others' draws unchanged; this is cheap in a simulator.
+\paragraph{Why the headline changed.} Study~2 reported that cross-blocking is a small share of the externality. That is true at its heavy-load operating point in the Python simulator and false in several ns-3 conditions. The defensible statement is regime dependence plus a way to bound it from a trace, and the paper is framed that way.
+\paragraph{Design implication, not tested.} Pinning flows to disjoint links makes the two notions coincide (Proposition~\ref{prop:cond}) and shrinks the externality here, at the cost of load balancing; quantifying that trade-off, and whether scheduling by externality pays off, is future work and is not claimed.
+
+\section{Limitations}
+\begin{itemize}
+  \item \textbf{Simulation only.} A purpose-built Python simulator and a patched ns-3.47 build, two links, short horizons, one latency-sensitive and one bulk flow in ns-3. The ns-3 binary carries this project's modifications, so it is a second implementation, not an independent one. No hardware or trace data.
+  \item \textbf{The Study 2 validity control failed} (V3), so H7--H9 are not independently validated; the replacement evidence (identity, sweep) is exploratory.
+  \item \textbf{The H10 exact check V7 failed} with a verified single-row diagnosis; the H12 design was flawed and its formal outcome is not used.
+  \item \textbf{The certificate is one-sided and loose for small $q$} (median $r/q$ \FourRatioMedPy{} in Python). The ranking evidence is pooled across two platforms (within-platform \FourRhoPy{} and \FourRhoNs{}, the latter on six cells), the cut-off has only four positive cells, and the certificate was discovered on a training set examined after the fact (21 cells; disclosed in the preregistration) before being tested on 19 fresh cells.
+  \item \textbf{The ns-3 ``$X$'' is the binary's cross-wait column}, which charges the whole wait to a cross-flow binding blocker and so includes the self-blocking part of those packets. A later check (Study~6, conditions A1 and A2, loads L0--L2, 60 runs) found the pure cross-blocking to be at least 98.8\% of it in every cell (99.5\% overall); condition A0 was not measured.
+  \item \textbf{ns-3 externality is an unpaired difference}, noisy when small; $r>1$ occurs in \FourNsRAboveOne{} cells. The guarantee is tested at the point estimate only.
+  \item Under FIFO the flows are nearly exchangeable, so the ranking test H8 has little signal; the unequal-flow evidence (SASP) is exploratory.
+  \item The Shapley value is one attribution; with strongly convex externalities ($R=\SBRFour$) other allocations answer different questions. No allocation comparison was made beyond X7.
+  \item Means are over delivered packets in Studies 2b--4; Study 2 uses right-censored means. Censoring was negligible at these horizons but was not varied.
+  \item The audit's pilot seeds 1--40 were examined before an amendment (disclosed in the preregistration); confirmatory seeds were untouched. The seed of the 5\% identity sample in V10 was fixed by the analysis script, not by the preregistration.
+  \item The literature search was limited; unverifiable inherited references were excluded. $p$-values (Study 1) use a sign-flip test; no human annotation, model judge or hardware measurement was used.
+\end{itemize}
+
+\section{Conclusion}
+A receiver trace tells a designer what a packet waited for, not what the system would have done without the other flow. We make the difference exact (an accounting identity, a boundary condition, and a one-sided certificate computable from a single trace), show that the trace figure is faithful in some regimes and a poor proxy in others, and report the failed control, the failed exact check and the flawed decision test that bound the claims. Whether externality-aware scheduling pays off remains open.
+
+\section*{Reproducibility}\label{sec:repro}
+All materials are in \texttt{validation/pairing/}. Study 1: preregistration \texttt{4f4b8f0} (SHA-256 \texttt{abf0c16a\dots}), Amendment~1 \texttt{d7448bb}, Amendment~2 and harness \texttt{25d2ce1}, results \texttt{49437e6}. Study 2: preregistration \texttt{87e5f67} (\texttt{73c53be0\dots}); results and Study 2b plan \texttt{30408d9}. Study 3: preregistration \texttt{ca602dc} (\texttt{0cc9b333\dots}), amendment and exploratory plan with Python results \texttt{b322446} (\texttt{9198268\dots}), ns-3 results \texttt{feb5a99}, exploratory X6/X7 \texttt{51a8306}. Study 4: preregistration \texttt{51a8306} (\texttt{15e5dd54\dots}), results \texttt{abb99ff}. Raw-file hashes: \texttt{results/RAW\_AND\_ANALYSIS.sha256}, \texttt{STUDY2\_RAW.sha256}, \texttt{STUDY3\_PY\_RAW.sha256}, \texttt{STUDY3\_NS3\_RAW.sha256}, \texttt{STUDY4\_RAW.sha256}. Rebuild with the \texttt{run\_study*.py} and \texttt{analyze*.py} scripts, then \texttt{paper/make\_numbers.py} and \texttt{paper/make\_fig.py}. Decisions are logged in \texttt{decisions.md}.
+
+\bibliographystyle{plain}
+\bibliography{refs}
+\end{document}
