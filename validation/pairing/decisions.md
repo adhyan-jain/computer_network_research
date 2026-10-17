@@ -102,3 +102,18 @@ Append-only. Each entry: what was decided, why, what it changes. Dates are 2026-
 - Diagnosis (post hoc): the control was ill-posed. I assumed queueing would vanish at 25% load, but queueing externality shrinks with load without vanishing (mean E 0.39 ms vs mean X 0.039 ms). The failure is NOT hidden or redefined.
 - Decision: do not rescue by editing V3. Add an exploratory Study 2b with an exact accounting identity E = dNet + dS + dX (checks V5, V6) and a load x asymmetry sweep, declared in STUDY2B_PLAN.md before running.
 - Novelty caveat recorded: R > 1 (marginal > average externality) is classic queueing convexity (Naor-style); the non-additivity itself is not claimed as new.
+
+## D23 Study 2b (exploratory) validated the accounting identity and explained the V3 failure
+- V5 identity gap 1.4e-14, V6 solo cross-blocking exactly 0. Cross-blocking share of the externality: 0.6%-36.6% over 12 (load x asymmetry) cells, median 8.0%, <15% in 10/12; queueing/service 60-99%.
+- Interpretation: V3 failed because queueing externality never vanishes; the method itself passed its exact checks.
+
+## D24 Paper rewritten around the externality concept (main.tex); audit-only draft kept as main_audit_only.tex
+- Lead contribution = concept + exact accounting; the Study 1 audit is supporting. V3 failure is stated in the abstract, results and limitations.
+- Honesty edits: H8 under FIFO is a weak test (flows exchangeable), so the SASP result (flows unequal) is reported as the more informative, exploratory evidence; non-additivity credited to Naor-style queueing convexity, not claimed as new; Proposition 3 (pinned disjoint links) marked untested.
+- Verified references added: Naor 1969 (Econometrica 37(1):15-24), Shapley 1953 (Annals of Math Studies 28, pp. 307-317).
+- Not committed: paper/, Study 2b outputs, logs. Commits so far: 4f4b8f0, d7448bb, 25d2ce1, 49437e6, 87e5f67, 30408d9 (local, nothing pushed).
+
+## D25 User asked to hunt for stronger, software-only foundations; Study 3 preregistered before any run (PREREGISTRATION_STUDY3.md)
+- Targets the three main reviewer objections: (H10) test the untested pinned-link proposition, including the window-coupling subtlety I noticed (static pinning still shares the sequence-number window, so dispatch can stall and break exactness; hence P256 vs P64); (H11) replicate the externality in ns-3.47 (community simulator) with with/without-bulk runs, reusing pre-existing with-bulk rows; (H12) offline decision-utility test with disjoint calibration/evaluation seeds.
+- ns-3 noise is not coupled between with/without runs, so E is a difference of independent means (wider CIs); stated in the prereg.
+- Honest risk: H11 may be heterogeneous or inconclusive; H12 may be a tie (TR and SH choose the same flow). All outcomes will be reported.
