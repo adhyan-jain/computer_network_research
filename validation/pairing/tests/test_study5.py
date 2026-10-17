@@ -146,3 +146,22 @@ def test_poisson_closed_form_tiny():
     assert ap.poisson_game_value(victim, others, rates, []) == 0.0
     X, PH = ap.mc_poisson(victim, others, rates, 4000, rng)
     assert abs(X.mean() - v) < 5 * X.std() / np.sqrt(len(X))
+
+
+def test_fast_helpers_match_frozen_versions():
+    import airport_fast as af
+    L = np.vstack([rand_l(5, ties=(i % 2 == 0)) for i in range(300)])
+    batch = af.shapley_airport_batch(L)
+    for i in range(len(L)):
+        assert np.allclose(batch[i], ap.shapley_airport(L[i]), atol=1e-12)
+    victim = ap.PathDelay([(1.0, 1.0, 0.3)])
+    others = [ap.PathDelay([(0.6, 1.0, 0.3), (0.4, 3.0, 0.5)]), ap.PathDelay([(1.0, 2.0, 0.0)])]
+    rates = [0.2, 0.15, 0.3]
+    Lmc = af.mc_poisson_vec(victim, others, rates, 60000, np.random.default_rng(3))
+    phi_cf = ap.shapley_poisson(victim, others, rates)
+    v_cf = ap.poisson_game_value(victim, others, rates, [0, 1])
+    X = Lmc.max(1)
+    assert abs(X.mean() - v_cf) < 5 * X.std() / np.sqrt(len(X))
+    PH = af.shapley_airport_batch(Lmc)
+    for j in range(2):
+        assert abs(PH[:, j].mean() - phi_cf[j]) < 5 * PH[:, j].std() / np.sqrt(len(PH))
