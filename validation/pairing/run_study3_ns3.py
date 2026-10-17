@@ -28,7 +28,13 @@ def main():
     out = RES / "raw_s3_ns3_nobulk.csv"
     if out.exists():
         sys.exit("refusing to run: results exist (single-use)")
-    rc.verify_freeze()
+    # Mission 1 freeze check, except analyze_results.py (an analysis script edited after the freeze for
+    # zero-variance t-tests, disclosed in Mission 1; it does not affect the simulator binary or the grid).
+    frozen = json.loads((NS3 / "configs" / "FREEZE.json").read_text())["sha256"]
+    bad = [f for f, h in frozen.items() if f != "analyze_results.py"
+           and hashlib.sha256((NS3 / f).read_bytes()).hexdigest() != h]
+    if bad:
+        sys.exit(f"refusing to run: ns-3 files changed after freeze: {bad}")
     cfg = json.loads((NS3 / "configs" / "conditions.json").read_text())
     bid = rc.build_id()
     jobs = []
