@@ -1,0 +1,14 @@
+{
+ "n_errors": 0,
+ "errors": [],
+ "seconds": 72.5,
+ "n_jobs": 1608,
+ "n_h16": 700,
+ "n_h17_coal": 6400,
+ "n_h18": 450,
+ "n_h19": 74,
+ "n_x12": 750,
+ "n_x15_obs": 4786,
+ "prereg_sha256": "3fff542302ae7d0b98995f8ef4f633670125bd6884d62d703eef377384bdb2ce",
+ "exploratory_plan_sha256": "01390d8ae13b468f95fb01e8b70fae588bf177bd62f225a7b96b24e46f518a57"
+}
