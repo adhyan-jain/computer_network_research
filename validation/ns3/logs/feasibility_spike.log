@@ -1,0 +1,26 @@
+[0/2] Re-checking globbed directories...
+ninja: no work to do.
+[0/2] Re-checking globbed directories...
+ninja: no work to do.
+[Spike Verification 1 & 2] MLD Endpoint Integrity:
+  AP MLD Address: 00:00:00:00:00:04
+  AP NPhys: 2, NLinks: 2
+  STA MLD Address: 00:00:00:00:00:01
+  STA NPhys: 2, NLinks: 2
+[Spike Execution] Running unmodified ns-3.47 Wi-Fi 7 STR MLO simulation (1 s)...
+
+=== SPIKE VALIDATION RESULTS (GATE 1 PROOF) ===
+1. MLO Device Integrity: VERIFIED (AP NPhys=2, STA NPhys=2, STR mode operational)
+2. Valid MLD Endpoints: VERIFIED (AP MLD: 00:00:00:00:00:04, STA MLD: 00:00:00:00:00:01)
+3. Two Simultaneous Active Links:
+   - Link 0 (5 GHz): Tx frames = 438, Rx frames = 438
+   - Link 1 (6 GHz): Tx frames = 450, Rx frames = 450
+4. Shared TID 0 Block Ack Context:
+   - Flow 1 (Port 5001, Latency-Sensitive) Rx: 15040 bytes
+   - Flow 2 (Port 5002, Bulk Background) Rx: 949200 bytes
+   - Total QoS Data Frames Sequenced: 886
+5. Frame Transmission & Reception on Intended Links: VERIFIED
+6. Link-Specific Timing & Trace Observability: VERIFIED
+7. Sequence Numbers & BA Observability: VERIFIED
+
+>>> GATE 1 FEASIBILITY SPIKE: PASSED <<<

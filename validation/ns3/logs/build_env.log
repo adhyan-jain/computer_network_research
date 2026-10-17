@@ -1,0 +1,9 @@
+=== BUILD ENVIRONMENT METADATA ===
+Timestamp: 2026-10-13T22:28:16+05:30
+OS / Kernel: Linux adhyan-omarchy 7.2.4-arch1-2 #1 SMP PREEMPT_DYNAMIC Tue, 08 Sep 2026 10:22:31 +0000 x86_64 GNU/Linux
+Compiler: gcc (GCC) 16.2.1 20260810
+CMake: cmake version 4.4.4
+Ninja: 1.13.2.git.kitware.jobserver-pipe-1
+Python: Python 3.14.7
+ns-3 Version: 3.47
+==================================

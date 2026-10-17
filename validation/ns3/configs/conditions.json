@@ -1,0 +1,145 @@
+{
+  "description": "Frozen physical conditions; produced by calibrate.py with FIFO only (seeds 9001-9003).",
+  "calibration_seeds": [
+    9001,
+    9002,
+    9003
+  ],
+  "load_fractions": {
+    "L0": 0.3,
+    "L1": 0.6,
+    "L2": 0.85
+  },
+  "ls_mbps": 0.2,
+  "main_conditions": {
+    "A0": {
+      "mcs0": 7,
+      "mcs1": 7,
+      "width0": 20,
+      "width1": 20,
+      "rss0": -55,
+      "rss1": -55,
+      "target_ratio": 1.0,
+      "calib_ratio": 1.0,
+      "calib_ratio_sd": 0.0,
+      "capacity_mbps": 86.4551111,
+      "capacity_sd": 0.05836270344612044,
+      "bulk_mbps": {
+        "L0": 25.73653333,
+        "L1": 51.673066659999996,
+        "L2": 73.28684443499999
+      }
+    },
+    "A1": {
+      "mcs0": 4,
+      "mcs1": 7,
+      "width0": 20,
+      "width1": 20,
+      "rss0": -55,
+      "rss1": -55,
+      "target_ratio": 1.5,
+      "calib_ratio": 1.4150943396226414,
+      "calib_ratio_sd": 0.0,
+      "capacity_mbps": 71.61549206666666,
+      "capacity_sd": 0.25537267148304676,
+      "bulk_mbps": {
+        "L0": 21.284647619999998,
+        "L1": 42.76929523999999,
+        "L2": 60.673168256666656
+      }
+    },
+    "A2": {
+      "mcs0": 1,
+      "mcs1": 7,
+      "width0": 20,
+      "width1": 20,
+      "rss0": -55,
+      "rss1": -55,
+      "target_ratio": 3.0,
+      "calib_ratio": 3.258620689655173,
+      "calib_ratio_sd": 0.007326177462058697,
+      "capacity_mbps": 51.969777799999996,
+      "capacity_sd": 0.276291469520516,
+      "bulk_mbps": {
+        "L0": 15.390933339999998,
+        "L1": 30.981866679999996,
+        "L2": 43.97431112999999
+      }
+    }
+  },
+  "ablation_regimes": {
+    "V1": {
+      "mcs0": 11,
+      "mcs1": 11,
+      "width0": 20,
+      "width1": 20,
+      "rss0": -76.0,
+      "rss1": -76.0,
+      "target_var_ratio": 1.0,
+      "calib_var_ratio": 1.0239203145075269,
+      "calib_dmean_ms": 0.00039963600000000876,
+      "calib_mean0_ms": 0.205794815,
+      "calib_mean1_ms": 0.206194451,
+      "calib_std0_ms": 0.08579642296666667,
+      "calib_std1_ms": 0.0868164976,
+      "capacity_mbps": 118.311873,
+      "capacity_sd": 0.09679783118438083,
+      "bulk_mbps": {
+        "L0": 35.2935619,
+        "L1": 70.7871238,
+        "L2": 100.36509205
+      }
+    },
+    "V2": {
+      "mcs0": 11,
+      "mcs1": 11,
+      "width0": 20,
+      "width1": 20,
+      "rss0": -75.75,
+      "rss1": -75.25,
+      "target_var_ratio": 2.0,
+      "calib_var_ratio": 1.9722488254418817,
+      "calib_dmean_ms": 0.004267415666666635,
+      "calib_mean0_ms": 0.19075904633333335,
+      "calib_mean1_ms": 0.19502646199999998,
+      "calib_std0_ms": 0.04235919326666667,
+      "calib_std1_ms": 0.059487885666666664,
+      "capacity_mbps": 122.02768233333333,
+      "capacity_sd": 0.2862123967060545,
+      "bulk_mbps": {
+        "L0": 36.408304699999995,
+        "L1": 73.0166094,
+        "L2": 103.52352998333333
+      }
+    },
+    "V4": {
+      "mcs0": 11,
+      "mcs1": 11,
+      "width0": 20,
+      "width1": 20,
+      "rss0": -76.5,
+      "rss1": -75.0,
+      "target_var_ratio": 4.0,
+      "calib_var_ratio": 3.9619946334254843,
+      "calib_dmean_ms": 0.03456682766666666,
+      "calib_mean0_ms": 0.19875630133333333,
+      "calib_mean1_ms": 0.233323129,
+      "calib_std0_ms": 0.0640191121,
+      "calib_std1_ms": 0.127428505,
+      "capacity_mbps": 115.25434933333334,
+      "capacity_sd": 0.25999751236288593,
+      "bulk_mbps": {
+        "L0": 34.3763048,
+        "L1": 68.9526096,
+        "L2": 97.76619693333333
+      }
+    }
+  },
+  "ablation_load": "L2",
+  "ablation_weight_ratios": [
+    1,
+    10,
+    50
+  ],
+  "main_weight_ratio": 10
+}

@@ -1,0 +1,22 @@
+{
+  "created": "2026-10-14T01:26:20+05:30",
+  "sha256": {
+    "preregistration.md": "0f694ac329cec704802788bf73245e5f17e17ba96bc02110d8e9e0bd9a77c371",
+    "configs/conditions.json": "87323b3c66b251e80166e673c40162c29d0a5bd07d65ca52307eb6cb923a9273",
+    "nsrun.py": "d0ceb45f6cce9573f02dfd5dc3f54eaafbaf3ebc89cab67222f0d6c47b41b8a1",
+    "calibrate.py": "41c8a2c7986203ee264ad199e531941f3c3f7ca0c4f220683c11465a63d79850",
+    "run_campaign.py": "95522aabbfdfe6ce764323ffae371eac878b4500133a2d76c493de40831e6b04",
+    "analyze_results.py": "0c79ac883b661aa044c1b92fb35d03642484d8887d65fa8818ad4eb41efa50bf",
+    "src/sasp-policy.h": "a3bdfd07158714eeb498b7026f163fb89f7c900fb10d520362e6f5c2b6bfdbb6",
+    "src/sasp-mlo-experiment.cc": "868190a9a45d6bec12cf6631b642553848157e8bbcc852365c98fda71410965d",
+    "ns-3.47/build/scratch/sasp-mlo-experiment/ns3.47-sasp-mlo-experiment-optimized": "054f1361096ee3c62adb2d03b373f0d7aad4d7dd71102266840ec517943b34bf",
+    "ns-3.47/build/lib/libns3.47-wifi-optimized.so": "b044200e9a4019dca5b904d415953023cdb67a961c8d69e0f9aee11a7a76c8ac",
+    "patches/0001-sasp-sequence-reservation-hook.patch": "fffba66a99bdfc6c0032ffc7eaf8d0db4a1edf921516cf132e3cc0408b5921ee",
+    "patches/0002-recipient-ba-reorder-observer.patch": "4c1081a7b4805ac7e0d389d4aa8fb218a0af75e7105ac8eec3b8ab59f6528ae1"
+  },
+  "environment": {
+    "platform": "Linux-7.2.4-arch1-2-x86_64-with-glibc2.44",
+    "python": "3.14.7",
+    "compiler": "c++ (GCC) 16.2.1 20260810"
+  }
+}

@@ -1,0 +1,109 @@
+--- a/src/wifi/model/recipient-block-ack-agreement.h
++++ b/src/wifi/model/recipient-block-ack-agreement.h
+@@ -11,6 +11,7 @@
+ #include "block-ack-agreement.h"
+ #include "block-ack-window.h"
+ 
++#include <functional>
+ #include <map>
+ 
+ namespace ns3
+@@ -86,6 +87,23 @@
+      */
+     void Flush();
+ 
++    /**
++     * Observation-only hooks on the receive reordering buffer (SASP validation extension).
++     * They are invoked by the unmodified reordering logic and cannot influence it.
++     */
++    struct Observer
++    {
++        /// MPDU newly inserted in the reordering buffer: (mpdu, buffered MPDUs after insertion)
++        std::function<void(Ptr<const WifiMpdu>, std::size_t)> onInsert;
++        /// MPDU passed up: (mpdu, true if released by a window advance / BAR over a gap)
++        std::function<void(Ptr<const WifiMpdu>, bool)> onRelease;
++        /// window forced past missing SNs: (number of MPDU slots skipped, new WinStartB)
++        std::function<void(uint16_t, uint16_t)> onForcedAdvance;
++    };
++
++    /// @return the (process-wide) observer; empty callbacks by default
++    static Observer& GetObserver();
++
+   private:
+     /**
+      * Pass MSDUs or A-MSDUs up to the next MAC process if they are stored in
+--- a/src/wifi/model/recipient-block-ack-agreement.cc
++++ b/src/wifi/model/recipient-block-ack-agreement.cc
+@@ -67,6 +67,13 @@
+     m_rxMiddle = rxMiddle;
+ }
+ 
++RecipientBlockAckAgreement::Observer&
++RecipientBlockAckAgreement::GetObserver()
++{
++    static Observer observer;
++    return observer;
++}
++
+ void
+ RecipientBlockAckAgreement::PassBufferedMpdusUntilFirstLost()
+ {
+@@ -82,6 +89,10 @@
+     while (it != m_bufferedMpdus.end() && it->first.first == m_winStartB)
+     {
+         NS_LOG_DEBUG("Forwarding up: " << *it->second);
++        if (GetObserver().onRelease)
++        {
++            GetObserver().onRelease(it->second, false);
++        }
+         m_rxMiddle->Receive(it->second, WIFI_LINKID_UNDEFINED);
+         it = m_bufferedMpdus.erase(it);
+         m_winStartB = (m_winStartB + 1) % SEQNO_SPACE_SIZE;
+@@ -104,9 +115,17 @@
+            GetDistance(it->first.first, m_winStartB) < GetDistance(newWinStartB, m_winStartB))
+     {
+         NS_LOG_DEBUG("Forwarding up: " << *it->second);
++        if (GetObserver().onRelease)
++        {
++            GetObserver().onRelease(it->second, true);
++        }
+         m_rxMiddle->Receive(it->second, WIFI_LINKID_UNDEFINED);
+         it = m_bufferedMpdus.erase(it);
+     }
++    if (GetObserver().onForcedAdvance && newWinStartB != m_winStartB)
++    {
++        GetObserver().onForcedAdvance(GetDistance(newWinStartB, m_winStartB), newWinStartB);
++    }
+     m_winStartB = newWinStartB;
+ }
+ 
+@@ -137,7 +156,13 @@
+     {
+         // 1. Store the received MPDU in the buffer, if no MSDU with the same sequence
+         // number is already present
+-        m_bufferedMpdus.insert({{mpdu->GetHeader().GetSequenceNumber(), &m_winStartB}, mpdu});
++        if (m_bufferedMpdus
++                .insert({{mpdu->GetHeader().GetSequenceNumber(), &m_winStartB}, mpdu})
++                .second &&
++            GetObserver().onInsert)
++        {
++            GetObserver().onInsert(mpdu, m_bufferedMpdus.size());
++        }
+ 
+         // 2. Pass MSDUs or A-MSDUs up to the next MAC process if they are stored in
+         // the buffer in order of increasing value of the Sequence Number subfield
+@@ -150,7 +175,13 @@
+     {
+         // 1. Store the received MPDU in the buffer, if no MSDU with the same sequence
+         // number is already present
+-        m_bufferedMpdus.insert({{mpdu->GetHeader().GetSequenceNumber(), &m_winStartB}, mpdu});
++        if (m_bufferedMpdus
++                .insert({{mpdu->GetHeader().GetSequenceNumber(), &m_winStartB}, mpdu})
++                .second &&
++            GetObserver().onInsert)
++        {
++            GetObserver().onInsert(mpdu, m_bufferedMpdus.size());
++        }
+ 
+         // 2. Set WinEndB = SN
+         // 3. Set WinStartB = WinEndB – WinSizeB + 1

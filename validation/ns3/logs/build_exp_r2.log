@@ -1,0 +1,7 @@
+[0/2] Re-checking globbed directories...
+[1/5] Building CXX object src/wifi/CMakeFiles/wifi.dir/model/qos-txop.cc.o
+[2/5] Linking CXX shared library /home/adhyan/Desktop/wifi7_mlo_hol/validation/ns3/ns-3.47/build/lib/libns3.47-wifi-optimized.so
+[3/5] Building CXX object scratch/CMakeFiles/scratch_sasp-mlo-experiment_sasp-mlo-experiment.dir/sasp-mlo-experiment/sasp-mlo-experiment.cc.o
+[4/5] Linking CXX executable /home/adhyan/Desktop/wifi7_mlo_hol/validation/ns3/ns-3.47/build/scratch/sasp-mlo-experiment/ns3.47-sasp-mlo-experiment-optimized
+Finished executing the following commands:
+/home/adhyan/.local/bin/cmake --build /home/adhyan/Desktop/wifi7_mlo_hol/validation/ns3/ns-3.47/cmake-cache -j 15 --target scratch_sasp-mlo-experiment_sasp-mlo-experiment

@@ -1,0 +1,684 @@
+The --warn-uninitialized option is deprecated.  Use -Wuninitialized instead.
+-- The CXX compiler identification is GNU 16.2.1
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Using default output directory /home/adhyan/Desktop/wifi7_mlo_hol/validation/ns3/ns-3.47/build
+-- Performing Test GCC_WORKING_PEDANTIC_SEMICOLON
+-- Performing Test GCC_WORKING_PEDANTIC_SEMICOLON - Success
+CMake Warning (uninitialized) at build-support/3rd-party/find-program-hints.cmake:9 (set):
+  uninitialized variable 'ProgramFiles'
+Call Stack (most recent call first):
+  build-support/macros-and-definitions.cmake:47 (include)
+  CMakeLists.txt:119 (include)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/find-program-hints.cmake:9 (set):
+  uninitialized variable 'ProgramFiles(x86)'
+Call Stack (most recent call first):
+  build-support/macros-and-definitions.cmake:47 (include)
+  CMakeLists.txt:119 (include)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/find-program-hints.cmake:9 (set):
+  uninitialized variable 'ProgramFiles'
+Call Stack (most recent call first):
+  build-support/macros-and-definitions.cmake:47 (include)
+  CMakeLists.txt:119 (include)
+
+
+CMake Warning (uninitialized) at build-support/custom-modules/ns3-ns3rc-parser.cmake:13 (find_file):
+  uninitialized variable 'USERPROFILE'
+Call Stack (most recent call first):
+  CMakeLists.txt:140 (parse_ns3rc)
+
+
+-- [33mProceeding without cmake-format[0m
+-- Performing Test STACKTRACE_LIBRARY_ENABLED
+-- Performing Test STACKTRACE_LIBRARY_ENABLED - Success
+-- Performing Test STACKTRACE_LIBRARY_IS_LINKED
+-- Performing Test STACKTRACE_LIBRARY_IS_LINKED - Success
+-- Found Git: /usr/bin/git (found version "2.55.0")
+CMake Warning (uninitialized) at build-support/3rd-party/FindEigen3.cmake:85 (find_path):
+  uninitialized variable 'KDE4_INCLUDE_DIR'
+Call Stack (most recent call first):
+  build-support/macros-and-definitions.cmake:579 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindHarfBuzz.cmake:70 (set):
+  uninitialized variable 'PC_HARFBUZZ_CFLAGS_VERSION'
+Call Stack (most recent call first):
+  build-support/macros-and-definitions.cmake:599 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindHarfBuzz.cmake:79 (find_library):
+  uninitialized variable 'HarfBuzz_NAMES'
+Call Stack (most recent call first):
+  build-support/macros-and-definitions.cmake:599 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindHarfBuzz.cmake:96 (if):
+  uninitialized variable 'HarfBuzz_FIND_VERSION'
+Call Stack (most recent call first):
+  build-support/macros-and-definitions.cmake:599 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindHarfBuzz.cmake:194 (set):
+  uninitialized variable 'HarfBuzz_ICU_LIBRARY'
+Call Stack (most recent call first):
+  build-support/macros-and-definitions.cmake:599 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindHarfBuzz.cmake:195 (set):
+  uninitialized variable 'HarfBuzz_ICU_INCLUDE_DIR'
+Call Stack (most recent call first):
+  build-support/macros-and-definitions.cmake:599 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:107 (set):
+  uninitialized variable 'GTK3_ADDITIONAL_SUFFIXES'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:433 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:142 (find_path):
+  uninitialized variable 'MSYSTEM'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:433 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:142 (find_path):
+  uninitialized variable 'CMAKE_LIBRARY_ARCHITECTURE'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:433 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:142 (find_path):
+  uninitialized variable 'GTKMM_BASEPATH'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:433 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:107 (set):
+  uninitialized variable 'GTK3_ADDITIONAL_SUFFIXES'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:434 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:142 (find_path):
+  uninitialized variable 'MSYSTEM'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:434 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:142 (find_path):
+  uninitialized variable 'CMAKE_LIBRARY_ARCHITECTURE'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:434 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:142 (find_path):
+  uninitialized variable 'GTKMM_BASEPATH'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:434 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:296 (find_library):
+  uninitialized variable 'GTKMM_BASEPATH'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:435 (_gtk3_find_library)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:296 (find_library):
+  uninitialized variable 'GTKMM_BASEPATH'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:437 (_gtk3_find_library)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:107 (set):
+  uninitialized variable 'GTK3_ADDITIONAL_SUFFIXES'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:439 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:142 (find_path):
+  uninitialized variable 'MSYSTEM'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:439 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:142 (find_path):
+  uninitialized variable 'CMAKE_LIBRARY_ARCHITECTURE'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:439 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:142 (find_path):
+  uninitialized variable 'GTKMM_BASEPATH'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:439 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:296 (find_library):
+  uninitialized variable 'GTKMM_BASEPATH'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:440 (_gtk3_find_library)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:107 (set):
+  uninitialized variable 'GTK3_ADDITIONAL_SUFFIXES'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:442 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:142 (find_path):
+  uninitialized variable 'MSYSTEM'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:442 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:142 (find_path):
+  uninitialized variable 'CMAKE_LIBRARY_ARCHITECTURE'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:442 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:142 (find_path):
+  uninitialized variable 'GTKMM_BASEPATH'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:442 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:296 (find_library):
+  uninitialized variable 'GTKMM_BASEPATH'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:443 (_gtk3_find_library)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:107 (set):
+  uninitialized variable 'GTK3_ADDITIONAL_SUFFIXES'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:445 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:142 (find_path):
+  uninitialized variable 'MSYSTEM'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:445 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:142 (find_path):
+  uninitialized variable 'CMAKE_LIBRARY_ARCHITECTURE'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:445 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:142 (find_path):
+  uninitialized variable 'GTKMM_BASEPATH'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:445 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:296 (find_library):
+  uninitialized variable 'GTKMM_BASEPATH'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:446 (_gtk3_find_library)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:107 (set):
+  uninitialized variable 'GTK3_ADDITIONAL_SUFFIXES'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:448 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:142 (find_path):
+  uninitialized variable 'MSYSTEM'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:448 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:142 (find_path):
+  uninitialized variable 'CMAKE_LIBRARY_ARCHITECTURE'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:448 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:142 (find_path):
+  uninitialized variable 'GTKMM_BASEPATH'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:448 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:107 (set):
+  uninitialized variable 'GTK3_ADDITIONAL_SUFFIXES'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:449 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:142 (find_path):
+  uninitialized variable 'MSYSTEM'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:449 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:142 (find_path):
+  uninitialized variable 'CMAKE_LIBRARY_ARCHITECTURE'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:449 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:142 (find_path):
+  uninitialized variable 'GTKMM_BASEPATH'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:449 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:107 (set):
+  uninitialized variable 'GTK3_ADDITIONAL_SUFFIXES'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:450 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:142 (find_path):
+  uninitialized variable 'MSYSTEM'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:450 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:142 (find_path):
+  uninitialized variable 'CMAKE_LIBRARY_ARCHITECTURE'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:450 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:142 (find_path):
+  uninitialized variable 'GTKMM_BASEPATH'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:450 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:296 (find_library):
+  uninitialized variable 'GTKMM_BASEPATH'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:455 (_gtk3_find_library)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:296 (find_library):
+  uninitialized variable 'GTKMM_BASEPATH'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:456 (_gtk3_find_library)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:107 (set):
+  uninitialized variable 'GTK3_ADDITIONAL_SUFFIXES'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:473 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:142 (find_path):
+  uninitialized variable 'MSYSTEM'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:473 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:142 (find_path):
+  uninitialized variable 'CMAKE_LIBRARY_ARCHITECTURE'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:473 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:142 (find_path):
+  uninitialized variable 'GTKMM_BASEPATH'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:473 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:296 (find_library):
+  uninitialized variable 'GTKMM_BASEPATH'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:474 (_gtk3_find_library)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:107 (set):
+  uninitialized variable 'GTK3_ADDITIONAL_SUFFIXES'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:476 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:142 (find_path):
+  uninitialized variable 'MSYSTEM'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:476 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:142 (find_path):
+  uninitialized variable 'CMAKE_LIBRARY_ARCHITECTURE'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:476 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:142 (find_path):
+  uninitialized variable 'GTKMM_BASEPATH'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:476 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:107 (set):
+  uninitialized variable 'GTK3_ADDITIONAL_SUFFIXES'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:478 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:142 (find_path):
+  uninitialized variable 'MSYSTEM'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:478 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:142 (find_path):
+  uninitialized variable 'CMAKE_LIBRARY_ARCHITECTURE'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:478 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:142 (find_path):
+  uninitialized variable 'GTKMM_BASEPATH'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:478 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:296 (find_library):
+  uninitialized variable 'GTKMM_BASEPATH'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:479 (_gtk3_find_library)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:107 (set):
+  uninitialized variable 'GTK3_ADDITIONAL_SUFFIXES'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:481 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:142 (find_path):
+  uninitialized variable 'MSYSTEM'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:481 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:142 (find_path):
+  uninitialized variable 'CMAKE_LIBRARY_ARCHITECTURE'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:481 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:142 (find_path):
+  uninitialized variable 'GTKMM_BASEPATH'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:481 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:107 (set):
+  uninitialized variable 'GTK3_ADDITIONAL_SUFFIXES'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:483 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:142 (find_path):
+  uninitialized variable 'MSYSTEM'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:483 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:142 (find_path):
+  uninitialized variable 'CMAKE_LIBRARY_ARCHITECTURE'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:483 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:142 (find_path):
+  uninitialized variable 'GTKMM_BASEPATH'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:483 (_gtk3_find_include_dir)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (uninitialized) at build-support/3rd-party/FindGTK3.cmake:296 (find_library):
+  uninitialized variable 'GTKMM_BASEPATH'
+Call Stack (most recent call first):
+  build-support/3rd-party/FindGTK3.cmake:484 (_gtk3_find_library)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+
+
+CMake Warning (author) at build-support/3rd-party/colored-messages.cmake:86 (_message):
+  [1;36mThe package name passed to find_package_handle_standard_args()
+  (GTK3_GTK) does not match the name of the calling package (GTK3).  This can
+  lead to problems in calling code that expects find_package() result
+  variables (e.g., `_FOUND`) to follow a certain pattern.[0m
+Call Stack (most recent call first):
+  /home/adhyan/.local/lib/python3.14/site-packages/cmake/data/share/cmake-4.4/Modules/FindPackageHandleStandardArgs.cmake:493 (message)
+  build-support/3rd-party/FindGTK3.cmake:561 (find_package_handle_standard_args)
+  build-support/macros-and-definitions.cmake:605 (find_package)
+  CMakeLists.txt:181 (process_options)
+This warning is for project developers.  Use -Wno-author to suppress it.
+
+-- Found GTK3_GTK: /usr/lib/libgtk-3.so
+-- Found Python3: /home/adhyan/.local/bin/python3.12 (found version "3.12.13") found components: Interpreter
+-- [33mPython: development libraries were not found[0m
+-- [33mBoost was not found[0m
+-- [33mdocs: doxygen documentation not enabled due to missing dependencies: doxygen dot dia[0m
+-- Found Sphinx: /usr/bin/sphinx-build
+-- [33mdocs: sphinx documentation not enabled due to missing dependencies: dia[0m
+-- Performing Test HAVE_UINT128_T
+-- Performing Test HAVE_UINT128_T - Failed
+-- Performing Test HAVE___UINT128_T
+-- Performing Test HAVE___UINT128_T - Success
+-- Looking for C++ include sys/types.h
+-- Looking for C++ include sys/types.h - found
+-- Looking for C++ include sys/stat.h
+-- Looking for C++ include sys/stat.h - found
+-- Looking for C++ include dirent.h
+-- Looking for C++ include dirent.h - found
+-- Looking for C++ include signal.h
+-- Looking for C++ include signal.h - found
+-- Looking for C++ include netpacket/packet.h
+-- Looking for C++ include netpacket/packet.h - found
+-- Looking for getenv
+-- Looking for getenv - found
+-- Processing src/antenna
+-- Performing Test HAVE_STD_BESSEL_FUNC
+-- Performing Test HAVE_STD_BESSEL_FUNC - Success
+-- Standard library Bessel function has been found
+-- Processing src/applications
+-- Performing Test COMPILER_HAS_HIDDEN_VISIBILITY
+-- Performing Test COMPILER_HAS_HIDDEN_VISIBILITY - Success
+-- Performing Test COMPILER_HAS_HIDDEN_INLINE_VISIBILITY
+-- Performing Test COMPILER_HAS_HIDDEN_INLINE_VISIBILITY - Success
+-- Performing Test COMPILER_HAS_DEPRECATED_ATTR
+-- Performing Test COMPILER_HAS_DEPRECATED_ATTR - Success
+-- Processing src/core
+-- Looking for include files boost/units/quantity.hpp, boost/units/systems/si.hpp
+-- Looking for include files boost/units/quantity.hpp, boost/units/systems/si.hpp - not found
+-- Boost Units are an optional feature of length.cc.  Ubuntu ships it within the libboost-dev package.  You may need to clean up the CMake cache after installing it to pass this check.
+-- Processing src/internet
+-- Processing src/mobility
+-- Processing src/network
+-- Processing src/propagation
+-- Processing src/spectrum
+-- Processing src/stats
+-- Processing src/wifi
+-- Processing src/bridge
+-- Processing src/traffic-control
+-- Processing src/buildings
+-- Processing src/energy
+-- ---- Summary of ns-3 settings:
+Build profile                 : optimized
+Build directory               : /home/adhyan/Desktop/wifi7_mlo_hol/validation/ns3/ns-3.47/build
+Build with runtime asserts    : OFF (not requested)
+Build with runtime logging    : OFF (not requested)
+Build version embedding       : OFF (not requested)
+BRITE Integration             : [31mOFF (missing dependency)[0m
+DES Metrics event collection  : OFF (not requested)
+DPDK NetDevice                : OFF (not requested)
+Emulation FdNetDevice         : [31mOFF (missing dependency)[0m
+Examples                      : OFF (not requested)
+File descriptor NetDevice     : [31mOFF (missing dependency)[0m
+GNU Scientific Library (GSL)  : [31mOFF (GSL was not found)[0m
+GtkConfigStore                : [32mON[0m
+LibXml2 support               : [32mON[0m
+MPI Support                   : OFF (not requested)
+ns-3 Click Integration        : [31mOFF (missing dependency)[0m
+ns-3 OpenFlow Integration     : [31mOFF (missing dependency)[0m
+Netmap emulation FdNetDevice  : [31mOFF (missing dependency)[0m
+PyViz visualizer              : [31mOFF (Python Bindings are disabled)[0m
+Python Bindings               : OFF (not requested)
+SQLite support                : [32mON[0m
+Eigen3 support                : [31mOFF (Eigen was not found)[0m
+Tap Bridge                    : [32mON[0m
+Tap FdNetDevice               : [31mOFF (missing dependency)[0m
+Tests                         : OFF (not requested)
+
+
+Modules configured to be built:
+antenna                   applications              bridge                    
+buildings                 core                      energy                    
+internet                  mobility                  network                   
+propagation               spectrum                  stats                     
+traffic-control           wifi                      
+
+
+-- Configuring done (5.7s)
+-- Generating done (0.1s)
+-- Build files have been written to: /home/adhyan/Desktop/wifi7_mlo_hol/validation/ns3/ns-3.47/cmake-cache
+Finished executing the following commands:
+mkdir cmake-cache
+/home/adhyan/.local/bin/cmake -S /home/adhyan/Desktop/wifi7_mlo_hol/validation/ns3/ns-3.47 -B /home/adhyan/Desktop/wifi7_mlo_hol/validation/ns3/ns-3.47/cmake-cache -DCMAKE_BUILD_TYPE=release -DNS3_ASSERT=OFF -DNS3_LOG=OFF -DNS3_WARNINGS_AS_ERRORS=OFF -DNS3_NATIVE_OPTIMIZATIONS=ON -DNS3_EXAMPLES=OFF -DNS3_TESTS=OFF -DNS3_ENABLED_MODULES=wifi,network,internet,applications,stats,core,mobility,spectrum,propagation,antenna -G Ninja --warn-uninitialized

@@ -1,0 +1,19 @@
+[ablation] 810 runs, build_id=ns3.47+pfffba66a4c1081a7+exe054f1361
+  50/810 (156s, 0 invalid)
+  100/810 (292s, 0 invalid)
+  150/810 (411s, 0 invalid)
+  200/810 (543s, 0 invalid)
+  250/810 (670s, 0 invalid)
+  300/810 (801s, 0 invalid)
+  350/810 (928s, 0 invalid)
+  400/810 (1058s, 0 invalid)
+  450/810 (1186s, 0 invalid)
+  500/810 (1313s, 0 invalid)
+  550/810 (1439s, 0 invalid)
+  600/810 (1563s, 0 invalid)
+  650/810 (1682s, 0 invalid)
+  700/810 (1805s, 0 invalid)
+  750/810 (1929s, 0 invalid)
+  800/810 (2043s, 0 invalid)
+merged 810 runs -> /home/adhyan/Desktop/wifi7_mlo_hol/validation/ns3/results/threshold_ablation/threshold_ablation_raw.csv
+campaign_exit=0

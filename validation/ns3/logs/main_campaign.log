@@ -1,0 +1,19 @@
+[main] 810 runs, build_id=ns3.47+pfffba66a4c1081a7+exe054f1361
+  50/810 (70s, 0 invalid)
+  100/810 (149s, 0 invalid)
+  150/810 (271s, 0 invalid)
+  200/810 (374s, 0 invalid)
+  250/810 (19572s, 0 invalid)
+  300/810 (19635s, 0 invalid)
+  350/810 (19687s, 0 invalid)
+  400/810 (19775s, 0 invalid)
+  450/810 (19873s, 0 invalid)
+  500/810 (19961s, 0 invalid)
+  550/810 (20027s, 0 invalid)
+  600/810 (20062s, 0 invalid)
+  650/810 (20115s, 0 invalid)
+  700/810 (20181s, 0 invalid)
+  750/810 (20249s, 0 invalid)
+  800/810 (20313s, 0 invalid)
+merged 810 runs -> /home/adhyan/Desktop/wifi7_mlo_hol/validation/ns3/results/main_campaign/main_campaign_raw.csv
+campaign_exit=0

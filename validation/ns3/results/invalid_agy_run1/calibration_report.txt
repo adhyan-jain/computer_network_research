@@ -1,0 +1,4 @@
+Reference Capacity C_ref: 15.239 Mbps
+A0: 15.239 Mbps, Cross-Blocking: 0.0063 ms
+A1: 15.239 Mbps, Cross-Blocking: 0.0081 ms
+A2: 15.239 Mbps, Cross-Blocking: 0.0594 ms

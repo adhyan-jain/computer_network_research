@@ -1,60 +1,71 @@
-# Independent Novelty Verdict (Phase 3 Audit)
+# Independent Novelty Verdict (Phase 5 Audit)
 
 **Date:** October 13, 2026  
-**Auditor Role:** Independent Reviewer & Reproducibility Auditor  
-**Topic:** Cross-Flow Head-of-Line Blocking in Wi-Fi 7 Multi-Link Operation: Analytical Modeling and Sequence-Aware Scheduling  
+**Auditor Role:** Independent Reviewer & Reproducibility Specialist  
+**Topic:** Wi-Fi 7 MLO Sequence-Aware Stochastic Partitioning (SASP)  
+
+*Disclaimer: This evaluation represents an academic novelty assessment for scientific peer-review positioning. It does NOT constitute a legal freedom-to-operate opinion or patent non-infringement clearance.*
 
 ---
 
-## 1. Executive Summary
+## 1. Executive Summary & Verdict
 
-This independent novelty audit re-evaluates the research claims against recent IEEE 802.11be literature (including Oliveira et al., IEEE OJCOMS 2026) and the wireless patent landscape (including MediaTek US12470496B2).
+**OVERALL NOVELTY VERDICT: CONFIRMED FOR NARROWED CLAIMS (CONDITIONAL GO).**
 
-**OVERALL NOVELTY VERDICT: CONFIRMED WITH NARROWED CLAIMS (CONDITIONAL GO).**
-
-The core contribution occupies an authentic, unoccupied architectural niche: a **transmitter-only Upper MAC predictive sequencing policy** operating under unmodified IEEE 802.11be receiver semantics. However, several previously inflated claims must be permanently removed or qualified.
+The project possesses authentic academic novelty when framed accurately:
+1. **Mathematical Novelty:** The post-facto trace accounting decomposition ($\Delta_i = \mathcal{S}_i + \mathcal{X}_i$), the exact Poisson tail stall probability ($\Pr(N \ge W)$), the strictly optimal pairwise Gaussian threshold rule $u^*(w_a, w_b)$ for $N=2$, and the symmetric-link causal uncertainty floor ($\min(w)\frac{\sigma_Z}{\sqrt{2\pi}}$) are original theoretical results.
+2. **Algorithmic Novelty:** Transmitter-side Upper MAC predictive sequence assignment—aligning sequence numbers with predicted physical arrival epochs to protect standard 802.11be Block Ack receiver buffers—is technically differentiated from published literature and patent disclosures.
+3. **Crucial Claim Boundary (Phase 3 & Phase 5 Audit):**
+   - Transitivity fails for pairwise comparisons ($N \ge 3$), meaning Theorem 3 does not generate a globally optimal multi-frame order. Multi-frame scheduling is an index heuristic.
+   - The reported 3.5%--4.9% gain of Full SASP over Mean-Only Sequencing does not survive multiple-comparison corrections across the 18 tested configurations. The dominant source of the 20%--78% gain over FIFO is **predictive arrival ordering by means**, not the variance threshold.
 
 ---
 
-## 2. Three Mandatory Questions Answered
+## 2. Six Detailed Novelty Questions Answered
 
-### Question 1: Is the underlying problem known?
+### Question 1: Is the CF-HOL problem itself novel?
+**NO for the general reordering effect; YES for the formal cross-flow formulation.**
+- The fact that multi-link latency asymmetry causes Block Ack window stalls was demonstrated empirically by Carreño et al. (2021) and Oliveira et al. (2026).
+- However, prior works treated reordering as an aggregate, single-stream delay spike. This paper is the first to formalize **cross-flow interference between distinct application flows multiplexed onto a shared TID** and provide an exact, orthogonal trace decomposition separating intra-flow self-blocking from inter-flow cross-blocking.
+
+### Question 2: Is the specific pairwise decision rule novel?
 **YES.**
-- The phenomenon that Multi-Link Operation induces packet reordering and Block Ack window stalls is recognized in empirical literature:
-  - Carreño et al. (2021) demonstrated throughput degradation under asymmetric links.
-  - Oliveira, Raposo, and Luís (IEEE OJCOMS 2026) conducted an in-depth ns-3 simulation showing substantial BA window reordering stalls for UDP traffic.
-  - MediaTek patent US12470496B2 (granted Nov 2025) explicitly addresses HOL blocking across multiple traffic types within a shared BA window.
-- **What is NOT known / genuinely novel about our problem formulation:**
-  Prior works treated reordering as an aggregate, monolithic delay phenomenon. This project is the first to isolate **cross-flow interference between distinct flows multiplexed onto a single Best-Effort TID** and provide a formal trace accounting framework ($\Delta_i = \mathcal{S}_i + \mathcal{X}_i$) separating intra-flow self-blocking from inter-flow cross-blocking.
+- The derivation of the transcendental equation $h(u) = (w_b - w_a)\phi(u) + [w_a(1-\Phi(u)) + w_b\Phi(u)]u = 0$, the proof of strictly positive derivative $h'(u) > 0$, and the threshold decision rule $s_a < s_b \iff (\mu_a - \mu_b)/\sigma_Z \le u^*(w_a, w_b)$ are mathematically novel.
+- No prior wireless MAC algorithm utilizes this threshold root for frame sequence allocation.
 
-### Question 2: Is the proposed mechanism novel over existing academic and technical work?
+### Question 3: Is the multi-frame scheduling policy novel?
+**CONDITIONALLY (as an engineering heuristic).**
+- Universal transitivity fails for pairwise comparisons (proven by our discovered Condorcet cycle $A \prec B \prec C \prec A$).
+- SASP's multi-frame policy—using Theorem 3 for $N=2$ pairs and scalar mean sorting for $N \ge 3$ batches—is an effective heuristic, but it is not globally optimal. Global batch optimality requires complete permutation enumeration over $N!$ sequence assignments under the non-additive receiver delay model.
+
+### Question 4: Is the resulting combined mechanism meaningfully different from the closest published work?
 **YES.**
-- **Versus Oliveira et al. (2026):** Oliveira et al. provided no mathematical model, no closed-form stall conditions, and no sequence scheduling algorithm (only speculating on reactive retransmission steering in future work). SASP is a proactive predictive sequencing scheduler.
-- **Versus MediaTek (US12470496B2 / US20240244007A1):** MediaTek claims a **receiving apparatus** that performs Deep Packet Inspection (DPI) to identify traffic types and split receive queues. MediaTek requires custom receiver firmware/hardware. SASP operates **strictly at the transmitter U-MAC**, leaving commercial client stations 100% standard-compliant and unmodified.
-- **Versus Carreño et al. (2021) and Choi et al. (2025):** Existing MLO schedulers make macro-level link choices (e.g. congestion-aware link selection) but assign sequence numbers strictly in FIFO enqueue order. SASP decouples link dispatch from sequence numbering, allocating sequence numbers based on predicted physical arrival order.
-- **Versus MPTCP Schedulers (BLEST, LowRTT):** MPTCP operates at Layer 4 across independent IP socket buffers on multi-RTT timescales ($10–100$ ms). Wi-Fi 7 U-MAC operates at Layer 2 across hardware-constrained Block Ack bitmaps ($W \le 256$) on sub-millisecond timescales with EDCA contention backoff.
+- **Versus Oliveira, Raposo, and Luís (IEEE OJCOMS 2026):** Oliveira et al. conducted an empirical ns-3 measurement study of aggregate BA stalls. They proposed no mathematical models, no closed-form stall conditions, and no sequence scheduling algorithms. SASP provides the theoretical framework and the sender-side predictive sequencing policy.
+- **Versus MediaTek (US12470496B2 / US20240163947A1, Nov 2025):** MediaTek requires a proprietary receiving station that executes Deep Packet Inspection (DPI) to split incoming packets into separate per-flow reorder queues. SASP is **purely transmitter U-MAC**, interoperating with standard commercial client stations without modifying 802.11be receiver semantics.
+- **Versus Carreño et al. (2021), Choi et al. (2025), and ATLAS (2026):** These schedulers allocate packets to links, but assign sequence numbers strictly in FIFO arrival order. SASP actively decouples link assignment from sequence numbering.
 
-### Question 3: Has the mechanism been validated well enough to establish a meaningful contribution?
-**CONDITIONALLY.**
-- **Theoretical Validation:** Theorems 1–3 are fully proved, verified algebraically, and backed by passing unit tests (39/39 passing).
-- **Empirical Validation:** 7 experiment campaigns across 30 seeds show consistent cross-blocking reductions (16.1% to 36.2%) and window stall mitigation (96.8% cross-blocking reduction at stall).
-- **Validation Limitations:** All simulations are executed in a custom Python discrete-event simulator. There is no physical Wi-Fi 7 hardware testbed or ns-3 cross-validation. This limitation must be explicitly disclosed in the manuscript.
+### Question 5: Does the evidence establish a meaningful advantage?
+**YES over FIFO (20%--78%); UNPROVEN over Mean-Only Sequencing.**
+- SASP provides a major, reproducible advantage over standard FIFO MLO, reducing cross-flow blocking by 20% to 78% under asymmetric link conditions ($\Delta\mu \ge 0.5$ ms).
+- However, the statistical audit proves that Full SASP's variance-aware root $u^*$ does not provide a statistically significant improvement over simple Mean-Only Sequencing once multiple comparisons are controlled. The paper must frame predictive sequencing as the primary contribution, with the Theorem 3 threshold root serving as a theoretical guarantee and priority tie-breaker rather than an empirical breakthrough.
 
----
-
-## 3. Disallowed and Inflated Claims (Permanently Stricken)
-
-1. **NO "Zero Patent Risk" Claims:** A prior-art literature review is an engineering analysis, not a legal opinion. Never claim guaranteed non-infringement or absolute freedom-to-operate.
-2. **NO "Universal Causal Floor" for General Asymmetric Links:** The old Theorem 4 inequality $\ge \min(w) \sigma_Z \phi(u)$ is mathematically false for $u > 0$. The repaired theorem holds strictly for symmetric links ($u = 0$).
-3. **NO "Almost Surely" Window Collapse:** Crossing $\lambda^* = W/\delta$ represents a mean-drift boundary, not an almost-sure event for finite Poisson arrivals.
-4. **NO Fabricated Numbers:** All metrics must match the raw CSVs exactly (e.g. 16.1% asymmetry reduction, 20.5% ablation reduction, not legacy 64.2% or 68.4%).
-5. **NO Claim of Global Multi-Frame Optimality:** Theorem 3 proves pairwise optimality. Multi-frame scheduling is an index-based heuristic.
+### Question 6: Which claims remain uncertain because of incomplete prior-art access?
+1. Proprietary, unreleased microcode heuristics in commercial AP chipsets (Broadcom, Qualcomm, Intel).
+2. Recently published or pending patent applications (post-mid-2025) concerning transmitter sequence management.
+3. Hardware-level SIFS turnaround feasibility under high PHY data rates.
 
 ---
 
-## 4. Final Verdict
+## 3. Disallowed Claims Matrix
 
-The research artifact possesses **solid, publishable novelty** when framed honestly:
-> *"An analytical modeling framework and transmitter-side predictive sequence allocation algorithm that mitigates cross-flow head-of-line blocking in IEEE 802.11be Multi-Link Operation without requiring receiver modifications."*
+| Disallowed Claim | Reason for Strike | Mandatory Replacement Claim |
+| :--- | :--- | :--- |
+| "Zero patent risk / absolute freedom to operate" | Literature audit is an engineering study, not legal advice | "Engineering prior-art analysis distinguishes SASP from published receiver-side patents" |
+| "Universal causal lower bound $\ge \min(w)\sigma_Z\phi(u)$" | Mathematically false for all $u > 0$ | "Symmetric-link stochastic uncertainty floor $\min(w)\frac{\sigma_Z}{\sqrt{2\pi}}$ at $u=0$" |
+| "Almost surely window collapse at $\lambda = \lambda^*$" | Mathematically invalid for Poisson arrivals ($\Pr(N < W) = 46.7\%$) | "Mean-drift crossover boundary with exact Poisson stall probability $\Pr(N \ge W)$" |
+| "Statistically significant 3.5%--4.9% gain over Mean-Only" | Fails multiple-comparison correction across 18 tested configurations | "Predictive sequencing provides up to 78% reduction over FIFO; threshold root acts as an index tie-breaker in near-equal mean regimes" |
+| "Globally optimal multi-frame scheduler" | Transitivity fails; pairwise preferences can form cycles | "Pairwise optimal decision rule providing an efficient index heuristic for multi-frame scheduling" |
+| "100% compliant and deployable in commercial Wi-Fi 7" | Evaluated only in custom Python simulator; no physical silicon testbed | "Sender-side mechanism compatible with standard IEEE 802.11be receiver semantics under simulation" |
 
-Suitable for submission to *Computer Networks* (Elsevier) or *IEEE OJCOMS*.
+---
+*End of Independent Novelty Verdict.*

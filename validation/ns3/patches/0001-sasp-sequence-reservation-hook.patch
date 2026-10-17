@@ -1,0 +1,197 @@
+--- a/src/wifi/model/qos-txop.h
++++ b/src/wifi/model/qos-txop.h
+@@ -18,6 +18,7 @@
+ #include "ns3/traced-value.h"
+ 
+ #include <optional>
++#include <vector>
+ 
+ namespace ns3
+ {
+@@ -301,6 +302,24 @@
+     void AssignSequenceNumber(Ptr<WifiMpdu> mpdu) const;
+ 
+     /**
++     * Callback invoked (SASP extension) when the first MPDU of a new frame exchange is about to
++     * receive its sequence number. Arguments: link ID, this QosTxop, the MPDU that is about to
++     * be sequenced (the head). The callback returns the (possibly empty) ordered list of other
++     * queued, not-yet-sequenced MPDUs that must receive their sequence numbers BEFORE the head.
++     * Returned MPDUs keep their queue position relative to each other but are moved ahead of
++     * the head so that they are the next to be transmitted. No MPDU that already has a
++     * sequence number is ever modified.
++     */
++    typedef Callback<std::vector<Ptr<WifiMpdu>>, uint8_t, Ptr<QosTxop>, Ptr<WifiMpdu>>
++        SequenceReservationCallback;
++
++    /**
++     * Set the SASP sequence reservation callback (null disables the extension).
++     * @param cb the callback
++     */
++    void SetSequenceReservationCallback(SequenceReservationCallback cb);
++
++    /**
+      * Get the value for the Queue Size subfield of the QoS Control field of a
+      * QoS data frame of the given TID and addressed to the given receiver.
+      *
+@@ -489,6 +508,8 @@
+ 
+     BaEstablishedTracedCallback
+         m_baEstablishedCallback; //!< traced callback for block ack agreement established events
++
++    SequenceReservationCallback m_seqReservationCallback; //!< SASP sequence reservation callback
+ };
+ 
+ } // namespace ns3
+--- a/src/wifi/model/qos-txop.cc
++++ b/src/wifi/model/qos-txop.cc
+@@ -353,6 +353,12 @@
+     return m_txMiddle->GetNextSequenceNumberFor(hdr);
+ }
+ 
++void
++QosTxop::SetSequenceReservationCallback(SequenceReservationCallback cb)
++{
++    m_seqReservationCallback = cb;
++}
++
+ uint16_t
+ QosTxop::PeekNextSequenceNumberFor(const WifiMacHeader* hdr)
+ {
+@@ -585,6 +591,47 @@
+         mpdu = peekedItem;
+     }
+ 
++    // SASP extension: before the head of a new frame exchange commits its sequence number,
++    // the callback may ask that other queued (not yet sequenced) MPDUs of the same
++    // recipient/TID are sequenced first. Sequence numbers are only ever assigned to MPDUs that
++    // do not have one yet, so no committed MPDU is re-sequenced.
++    if (initialFrame && !m_seqReservationCallback.IsNull() && mpdu->GetHeader().IsQosData() &&
++        !mpdu->IsFragment() && !mpdu->HasSeqNoAssigned())
++    {
++        // in an MLD, the instance handed to us carries link-specific addresses: queue keys,
++        // BA agreements and the sequence counter all refer to the original (MLD-address) MPDU
++        const auto origHead = peekedItem->GetOriginal();
++        const auto origRecipient = origHead->GetHeader().GetAddr1();
++        const auto tid = origHead->GetHeader().GetQosTid();
++        const auto agreement = m_mac->GetBaAgreementEstablishedAsOriginator(origRecipient, tid);
++        auto reserve = m_seqReservationCallback(linkId, this, mpdu);
++        std::vector<Ptr<WifiMpdu>> valid;
++        for (const auto& cand : reserve)
++        {
++            if (cand && cand != origHead && cand->IsQueued() && !cand->HasSeqNoAssigned() &&
++                !cand->IsFragment() && cand->GetInFlightLinkIds().empty() &&
++                cand->GetHeader().IsQosData() && cand->GetHeader().GetAddr1() == origRecipient &&
++                cand->GetHeader().GetQosTid() == tid)
++            {
++                valid.push_back(cand);
++            }
++        }
++        // the head will end up with SN = next + valid.size(): it must still be in the window
++        const auto firstSn = m_txMiddle->PeekNextSequenceNumberFor(&origHead->GetHeader());
++        const auto headSn = static_cast<uint16_t>((firstSn + valid.size()) % SEQNO_SPACE_SIZE);
++        if (!valid.empty() &&
++            (!agreement || IsInWindow(headSn,
++                                      GetBaStartingSequence(origRecipient, tid),
++                                      GetBaBufferSize(origRecipient, tid))))
++        {
++            for (const auto& cand : valid)
++            {
++                AssignSequenceNumber(cand);
++                m_queue->MoveBefore(cand, peekedItem);
++            }
++        }
++    }
++
+     // Assign a sequence number if this is not a fragment nor a retransmission
+     AssignSequenceNumber(mpdu);
+     NS_LOG_DEBUG("Got MPDU from EDCA queue: " << *mpdu);
+--- a/src/wifi/model/wifi-mac-queue.h
++++ b/src/wifi/model/wifi-mac-queue.h
+@@ -217,6 +217,15 @@
+     void Replace(Ptr<const WifiMpdu> currentItem, Ptr<WifiMpdu> newItem);
+ 
+     /**
++     * Move the given item before the given target item in the same container queue
++     * (SASP extension: queue order helper, does not touch sequence numbers).
++     *
++     * @param itemToMove the item to move
++     * @param targetItem the item before which itemToMove is moved
++     */
++    void MoveBefore(Ptr<WifiMpdu> itemToMove, Ptr<WifiMpdu> targetItem);
++
++    /**
+      * Get the number of MPDUs currently stored in the container queue identified
+      * by the given queue ID.
+      *
+--- a/src/wifi/model/wifi-mac-queue.cc
++++ b/src/wifi/model/wifi-mac-queue.cc
+@@ -439,6 +439,29 @@
+     NS_ABORT_IF(!ret);
+ }
+ 
++void
++WifiMacQueue::MoveBefore(Ptr<WifiMpdu> itemToMove, Ptr<WifiMpdu> targetItem)
++{
++    NS_LOG_FUNCTION(this << itemToMove << targetItem);
++    if (!itemToMove || !targetItem || itemToMove == targetItem)
++    {
++        return;
++    }
++    auto origMove = GetOriginal(itemToMove);
++    auto origTarget = GetOriginal(targetItem);
++    if (!origMove || !origTarget || !origMove->IsQueued() || !origTarget->IsQueued())
++    {
++        return;
++    }
++    auto queueId1 = WifiMacQueueContainer::GetQueueId(origMove);
++    auto queueId2 = WifiMacQueueContainer::GetQueueId(origTarget);
++    if (queueId1 != queueId2)
++    {
++        return;
++    }
++    GetContainer().MoveBefore(queueId1, GetIt(origMove), GetIt(origTarget));
++}
++
+ uint32_t
+ WifiMacQueue::GetNPackets(const WifiContainerQueueId& queueId) const
+ {
+--- a/src/wifi/model/wifi-mac-queue-container.h
++++ b/src/wifi/model/wifi-mac-queue-container.h
+@@ -149,6 +149,16 @@
+     iterator erase(const_iterator pos);
+ 
+     /**
++     * Move an element in the container queue identified by the given QueueId before target
++     * (SASP extension: queue order helper, does not touch sequence numbers).
++     *
++     * @param queueId the QueueId identifying the container queue
++     * @param itToMove iterator to the element to move
++     * @param targetIt iterator before which the element is moved
++     */
++    void MoveBefore(const WifiContainerQueueId& queueId, iterator itToMove, iterator targetIt) const;
++
++    /**
+      * Return the WifiMpdu included in the element pointed to by the given iterator.
+      *
+      * @param it the given iterator
+--- a/src/wifi/model/wifi-mac-queue-container.cc
++++ b/src/wifi/model/wifi-mac-queue-container.cc
+@@ -59,6 +59,18 @@
+     return m_queues[queueId].erase(pos);
+ }
+ 
++void
++WifiMacQueueContainer::MoveBefore(const WifiContainerQueueId& queueId,
++                                  iterator itToMove,
++                                  iterator targetIt) const
++{
++    auto it = m_queues.find(queueId);
++    if (it != m_queues.end() && itToMove != targetIt && std::next(itToMove) != targetIt)
++    {
++        it->second.splice(targetIt, it->second, itToMove);
++    }
++}
++
+ Ptr<WifiMpdu>
+ WifiMacQueueContainer::GetItem(const const_iterator it) const
+ {

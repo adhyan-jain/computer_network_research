@@ -1,0 +1,13 @@
+[PASS] 1  real MLO devices: NPhys=NLinks=2 on AP and STA (AP 2)
+[PASS] 2  MLD addresses differ from the 4 per-link addresses (6 distinct addresses)
+[PASS] 2/4 originator BA agreement established AP-MLD -> STA-MLD for TID 0
+[PASS] 3  data PSDUs transmitted on BOTH links (1620 / 3407)
+[PASS] 3  transmissions on the two links overlap in time (STR: simultaneous operation)
+[PASS] 4  every data MPDU of both flows is QoS data with TID 0 (one BA ordering context)
+[PASS] 4  two distinct application flows present (3 MPDU size classes)
+[PASS] 5  STA receives PPDUs on both links (1692 / 3501)
+[PASS] 5  MPDUs delivered up at the STA MAC (5192)
+[PASS] 6/7 per-MPDU BA acknowledgements observed (AckedMpdu: 5190)
+[PASS] 7  sequence numbers observable on transmitted MPDUs (4096 distinct)
+TRACE_FNV1A64=6af5d1d63b55ef0f EVENTS=15574
+>>> GATE 1: ALL COMPUTED CHECKS PASSED
