@@ -95,3 +95,10 @@ Append-only. Each entry: what was decided, why, what it changes. Dates are 2026-
 - Why this one: it follows from a confirmed Study 1 finding (H4), is testable with exact controls, and a null (X is a good proxy) is also informative.
 - Preregistered as Study 2 before any run (PREREGISTRATION_STUDY2.md), fresh seeds 20000-20099, validity checks V1-V4 incl. a low-load control that must give explained fraction in [0.75,1.25].
 - Risk acknowledged: it may come out as "X is an adequate proxy" (then the paper becomes a validation of the standard metric) or the low-load control may fail (then the method is reported as not validated).
+
+## D22 Study 2 executed once (seeds 20000-20099, 0 errors). V3 low-load control FAILED.
+- Nominal verdicts: H7 explained fraction 0.7% (S4 and S8), H8 Kendall tau 0.18/0.16, H9 non-additivity R 1.90/2.69 -> all "confirmed" by their preregistered rules.
+- V1 (efficiency gap 0.0), V2 (0 replay violations), V4 (completeness gap 0.0) passed. V3 required explained fraction in [0.75,1.25] at LowLoad; observed 0.10 -> per the preregistration the method is "not validated" by that control and H7-H9 are reported with that caveat.
+- Diagnosis (post hoc): the control was ill-posed. I assumed queueing would vanish at 25% load, but queueing externality shrinks with load without vanishing (mean E 0.39 ms vs mean X 0.039 ms). The failure is NOT hidden or redefined.
+- Decision: do not rescue by editing V3. Add an exploratory Study 2b with an exact accounting identity E = dNet + dS + dX (checks V5, V6) and a load x asymmetry sweep, declared in STUDY2B_PLAN.md before running.
+- Novelty caveat recorded: R > 1 (marginal > average externality) is classic queueing convexity (Naor-style); the non-additivity itself is not claimed as new.

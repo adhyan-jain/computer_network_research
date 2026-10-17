@@ -1,0 +1,310 @@
+{
+ "LowLoad/FIFO": {
+  "n_seeds": 100,
+  "n_victim_pairs": 400,
+  "dropped_pairs": 0,
+  "explained_fraction": {
+   "point": 0.09998900300323854,
+   "ci": [
+    0.08767526884424996,
+    0.11337142439641082
+   ]
+  },
+  "kendall_trace_vs_shapley": {
+   "mean": -0.004805624744065129,
+   "ci": [
+    -0.10806082643048413,
+    0.09855401665005994
+   ],
+   "n_valid_seeds": 95
+  },
+  "top_offender_agreement": 0.27,
+  "nonadditivity_R": {
+   "point": 0.9506968742003704,
+   "ci": [
+    0.9221714965744067,
+    0.9806052454754444
+   ]
+  },
+  "exploratory_kendall_loo_vs_shapley": 0.8644620426250862,
+  "frac_negative_externality": 0.005,
+  "mean_E_ms": 0.39039412832589837,
+  "mean_X_ms": 0.039035119669624946,
+  "mean_blame_TR_by_flow": [
+   0.03507145688637358,
+   0.043758569874931715,
+   0.04183952770737025,
+   0.03547092420982425
+  ],
+  "mean_blame_SH_by_flow": [
+   0.40930425735167314,
+   0.40346720821668697,
+   0.38156982141395135,
+   0.36723522632128175
+  ],
+  "validity": {
+   "V1_max_efficiency_gap": 2.220446049250313e-16,
+   "V2_replay_signature_violations": 0,
+   "V4_max_completeness_gap": 5.551115123125783e-17
+  }
+ },
+ "S2/FIFO": {
+  "n_seeds": 100,
+  "n_victim_pairs": 200,
+  "dropped_pairs": 0,
+  "explained_fraction": {
+   "point": 0.004750897953426307,
+   "ci": [
+    0.00382726301001869,
+    0.005811906726675909
+   ]
+  },
+  "kendall_trace_vs_shapley": {
+   "mean": -0.10869565217391304,
+   "ci": [
+    -0.3125,
+    0.09473684210526316
+   ],
+   "n_valid_seeds": 92
+  },
+  "top_offender_agreement": 0.46,
+  "nonadditivity_R": {
+   "point": 1.0,
+   "ci": [
+    1.0,
+    1.0
+   ]
+  },
+  "exploratory_kendall_loo_vs_shapley": 1.0,
+  "frac_negative_externality": 0.0,
+  "mean_E_ms": 0.9980111020981224,
+  "mean_X_ms": 0.004741448902454703,
+  "mean_blame_TR_by_flow": [
+   0.00454510605825178,
+   0.004937791746657626
+  ],
+  "mean_blame_SH_by_flow": [
+   1.0017788797018858,
+   0.9942433244943593
+  ],
+  "validity": {
+   "V1_max_efficiency_gap": 0.0,
+   "V2_replay_signature_violations": 0,
+   "V4_max_completeness_gap": 0.0
+  }
+ },
+ "S4/FIFO": {
+  "n_seeds": 100,
+  "n_victim_pairs": 400,
+  "dropped_pairs": 0,
+  "explained_fraction": {
+   "point": 0.006834508268324835,
+   "ci": [
+    0.005726788733849318,
+    0.008029752482074813
+   ]
+  },
+  "kendall_trace_vs_shapley": {
+   "mean": 0.18326154496350958,
+   "ci": [
+    0.10056813267213437,
+    0.2656147874500807
+   ],
+   "n_valid_seeds": 98
+  },
+  "top_offender_agreement": 0.39,
+  "nonadditivity_R": {
+   "point": 1.9034708519943726,
+   "ci": [
+    1.8587635485565963,
+    1.9470001438492606
+   ]
+  },
+  "exploratory_kendall_loo_vs_shapley": 0.8700000000000001,
+  "frac_negative_externality": 0.0,
+  "mean_E_ms": 1.0981979411232174,
+  "mean_X_ms": 0.00750564290886394,
+  "mean_blame_TR_by_flow": [
+   0.008141469268778422,
+   0.009017642544448434,
+   0.007407820068163588,
+   0.00545563975406531
+  ],
+  "mean_blame_SH_by_flow": [
+   1.1073824393957152,
+   1.0764534613773675,
+   1.1002353054079508,
+   1.1087205583118358
+  ],
+  "validity": {
+   "V1_max_efficiency_gap": 4.440892098500626e-16,
+   "V2_replay_signature_violations": 0,
+   "V4_max_completeness_gap": 6.938893903907228e-18
+  },
+  "H7_verdict": "confirmed (X does not capture externality)",
+  "H8_verdict": "confirmed (misranking)",
+  "H9_verdict": "confirmed (non-additive)"
+ },
+ "S4/FullSASP": {
+  "n_seeds": 100,
+  "n_victim_pairs": 400,
+  "dropped_pairs": 0,
+  "explained_fraction": {
+   "point": 0.005419311362470859,
+   "ci": [
+    0.004459013220937479,
+    0.006481852369120759
+   ]
+  },
+  "kendall_trace_vs_shapley": {
+   "mean": 0.1015702532125354,
+   "ci": [
+    -0.006021067607565603,
+    0.20478263214804668
+   ],
+   "n_valid_seeds": 94
+  },
+  "top_offender_agreement": 0.32,
+  "nonadditivity_R": {
+   "point": 1.9009883187344727,
+   "ci": [
+    1.8561056933819269,
+    1.9437917829455345
+   ]
+  },
+  "exploratory_kendall_loo_vs_shapley": 0.8633333333333333,
+  "frac_negative_externality": 0.0,
+  "mean_E_ms": 1.0982418785964094,
+  "mean_X_ms": 0.0059517146914188634,
+  "mean_blame_TR_by_flow": [
+   0.006170228228930086,
+   0.0067093207812080865,
+   0.006692432184883564,
+   0.004234877570653711
+  ],
+  "mean_blame_SH_by_flow": [
+   1.0583927003309122,
+   0.7386902871975711,
+   1.3225287916168993,
+   1.2733557352402547
+  ],
+  "validity": {
+   "V1_max_efficiency_gap": 8.881784197001252e-16,
+   "V2_replay_signature_violations": 0,
+   "V4_max_completeness_gap": 6.938893903907228e-18
+  }
+ },
+ "S4/MeanOnly": {
+  "n_seeds": 100,
+  "n_victim_pairs": 400,
+  "dropped_pairs": 0,
+  "explained_fraction": {
+   "point": 0.005397720875505128,
+   "ci": [
+    0.004487362358598089,
+    0.006407460998278867
+   ]
+  },
+  "kendall_trace_vs_shapley": {
+   "mean": 0.07497218071121128,
+   "ci": [
+    -0.03031169736258786,
+    0.18217731634405307
+   ],
+   "n_valid_seeds": 96
+  },
+  "top_offender_agreement": 0.32,
+  "nonadditivity_R": {
+   "point": 1.8985864685389462,
+   "ci": [
+    1.8569524991151782,
+    1.9402546999267742
+   ]
+  },
+  "exploratory_kendall_loo_vs_shapley": 0.8633333333333333,
+  "frac_negative_externality": 0.0,
+  "mean_E_ms": 1.0958051694461357,
+  "mean_X_ms": 0.005914850438605842,
+  "mean_blame_TR_by_flow": [
+   0.005982815688895809,
+   0.006871155255337157,
+   0.006424780162327718,
+   0.004380650647862677
+  ],
+  "mean_blame_SH_by_flow": [
+   1.0621713016478769,
+   0.6875513880674731,
+   1.3395857569127672,
+   1.2939122311564255
+  ],
+  "validity": {
+   "V1_max_efficiency_gap": 8.881784197001252e-16,
+   "V2_replay_signature_violations": 0,
+   "V4_max_completeness_gap": 6.938893903907228e-18
+  }
+ },
+ "S8/FIFO": {
+  "n_seeds": 100,
+  "n_victim_pairs": 800,
+  "dropped_pairs": 0,
+  "explained_fraction": {
+   "point": 0.006975672999672847,
+   "ci": [
+    0.005953785058767485,
+    0.00812806221295626
+   ]
+  },
+  "kendall_trace_vs_shapley": {
+   "mean": 0.1607601926036288,
+   "ci": [
+    0.10086850524717256,
+    0.22070588428914656
+   ],
+   "n_valid_seeds": 98
+  },
+  "top_offender_agreement": 0.26,
+  "nonadditivity_R": {
+   "point": 2.6916980478142634,
+   "ci": [
+    2.598427132206986,
+    2.7842178442207084
+   ]
+  },
+  "exploratory_kendall_loo_vs_shapley": 0.8285714285714286,
+  "frac_negative_externality": 0.0,
+  "mean_E_ms": 1.1562588036449228,
+  "mean_X_ms": 0.008065683317219914,
+  "mean_blame_TR_by_flow": [
+   0.009954307950964622,
+   0.010822637219390752,
+   0.007914363630211519,
+   0.008338957465706048,
+   0.006053865676483432,
+   0.007549316137218911,
+   0.006948587872893067,
+   0.006943430584890961
+  ],
+  "mean_blame_SH_by_flow": [
+   1.202729363399365,
+   1.1174560921767476,
+   1.1604504393520518,
+   1.155974592754218,
+   1.135630988028925,
+   1.1234245419396631,
+   1.234719493538514,
+   1.1196849179698982
+  ],
+  "validity": {
+   "V1_max_efficiency_gap": 8.881784197001252e-16,
+   "V2_replay_signature_violations": 0,
+   "V4_max_completeness_gap": 6.938893903907228e-18
+  },
+  "H7_verdict": "confirmed (X does not capture externality)",
+  "H8_verdict": "confirmed (misranking)",
+  "H9_verdict": "confirmed (non-additive)"
+ },
+ "V3_lowload_control": {
+  "explained_fraction": 0.09998900300323854,
+  "passed": false
+ }
+}

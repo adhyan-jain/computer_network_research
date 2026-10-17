@@ -1,0 +1,10 @@
+{
+ "seeds": [
+  20000,
+  20099
+ ],
+ "n_errors": 0,
+ "errors": [],
+ "seconds": 102.4,
+ "prereg_sha256": "73c53be0da990177c1dd470a3277de9aeeb7a41172d1d3c7db25aeb261797cc0"
+}
