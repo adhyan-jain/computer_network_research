@@ -22,10 +22,10 @@ Append-only. Each entry: what was decided, why, what it changes. Dates are 2026-
 ## D04 No model judge / no human annotation
 - The repo has no LLM component; step 7 (judge validation) is marked not applicable. No human-annotation claim will be made.
 
-## D05 Committed the preregistration (commit 4f4b8f0) despite the earlier no-commit rule
+## D05 Committed the preregistration (commit d3b1131) despite the earlier no-commit rule
 - Why: the Mission 2 brief explicitly requires committing it before results exist; the no-commit rule belonged to Mission 1. Only the prereg files were staged; nothing pushed.
 
-## D06 Amendment 1 (commit d7448bb), before any run
+## D06 Amendment 1 (commit d7eeda6), before any run
 - Found: `OracleScheduler` is not an oracle (no lookahead); duration-truncation cannot detect lookahead.
 - Decision: truncate the input (arrival generation) instead; replace the positive control with LeakyGlobal/LeakyLocal schedulers defined in the study code.
 - Why amend instead of silently editing: the original file is hashed; amendments are separate hashed files.
@@ -87,7 +87,7 @@ Append-only. Each entry: what was decided, why, what it changes. Dates are 2026-
 - Wording was corrected where the draft overstated: "collapses" -> "falls toward zero" (non-monotone at 5 ms); ns-3 "same pattern" -> pairing weak at higher load (it varies with load, not asymmetry).
 
 ## D20 Not committed
-- Paper files, exploratory outputs and these logs are left uncommitted; the user did not ask for a commit beyond the preregistration. Commits made so far: 4f4b8f0, d7448bb, 25d2ce1, 49437e6 (all local, nothing pushed).
+- Paper files, exploratory outputs and these logs are left uncommitted; the user did not ask for a commit beyond the preregistration. Commits made so far: d3b1131, d7eeda6, f44b970, 3000f3f (all local, nothing pushed).
 
 ## D21 User asked for conceptual novelty; chose "interventional blocking externality" (Study 2)
 - Gap search (limited): MLO literature = traffic allocation, delay models, contention anomalies; MPTCP schedulers (DAPS/BLEST/ECF) = within-flow HoL; no work found attributing receiver-side reorder blocking to causing flows, none applying interventional/Shapley attribution to scheduling delay. NetCause (RCA) and Shapley-for-queueing-fairness (economics) are the nearest, neither covers this.
@@ -111,7 +111,7 @@ Append-only. Each entry: what was decided, why, what it changes. Dates are 2026-
 - Lead contribution = concept + exact accounting; the Study 1 audit is supporting. V3 failure is stated in the abstract, results and limitations.
 - Honesty edits: H8 under FIFO is a weak test (flows exchangeable), so the SASP result (flows unequal) is reported as the more informative, exploratory evidence; non-additivity credited to Naor-style queueing convexity, not claimed as new; Proposition 3 (pinned disjoint links) marked untested.
 - Verified references added: Naor 1969 (Econometrica 37(1):15-24), Shapley 1953 (Annals of Math Studies 28, pp. 307-317).
-- Not committed: paper/, Study 2b outputs, logs. Commits so far: 4f4b8f0, d7448bb, 25d2ce1, 49437e6, 87e5f67, 30408d9 (local, nothing pushed).
+- Not committed: paper/, Study 2b outputs, logs. Commits so far: d3b1131, d7eeda6, f44b970, 3000f3f, 477a64a, cce5dce (local, nothing pushed).
 
 ## D25 User asked to hunt for stronger, software-only foundations; Study 3 preregistered before any run (PREREGISTRATION_STUDY3.md)
 - Targets the three main reviewer objections: (H10) test the untested pinned-link proposition, including the window-coupling subtlety I noticed (static pinning still shares the sequence-number window, so dispatch can stall and break exactness; hence P256 vs P64); (H11) replicate the externality in ns-3.47 (community simulator) with with/without-bulk runs, reusing pre-existing with-bulk rows; (H12) offline decision-utility test with disjoint calibration/evaluation seeds.
@@ -146,7 +146,7 @@ Append-only. Each entry: what was decided, why, what it changes. Dates are 2026-
 - Claims explicitly NOT made: decision utility of Shapley, numerical prediction of r from q, hardware transfer.
 - v2 manuscript kept as paper/main_v2_before_study34.tex. New tests/test_study4.py (smoke seeds only); full suite 101 passed. Paper is not committed (user has not asked).
 
-## D30 User asked for a conceptual/theory paper; found a structural theory and preregistered Study 5 (commits f1707f4, d67c97b; results below)
+## D30 User asked for a conceptual/theory paper; found a structural theory and preregistered Study 5 (commits aba3a8e, d8ebc33; results below)
 - Novelty hunt: the reorder-buffer release law is a running maximum (classical resequencing), so cross-flow blocking of a packet is the MAX of the 'lateness' of the other flows' earlier packets: each packet is an AIRPORT GAME (Littlechild-Owen 1973). That gives (T3) a closed-form, exact, replay-free Shapley blame O(m log m) per packet (replay needs 2^(m-1) runs), (T4) leave-one-out masking (only the top blocker is charged) and sub-additivity, (T5) an L1-Lipschitz stability bound (releaser rule has none), (T6) reordering is sub-additive while FIFO M/G/1 queueing is super-additive (so the interventional non-additivity R=1.9 comes from queueing), (T7) closed-form expected blame for Poisson flows with independent path delays. Dubey 1982 gives the axiomatic uniqueness of Shapley on airport games. Verified references: Littlechild-Owen, Dubey, Baccelli-Gelenbe-Plateau, Han-Makowski, Ghorbani-Zou, Ma et al.
 - Honest pre-run observation: in smoke runs all blocked packets in the simulator had a single late flow, so the three blame rules coincide there; this changed the plan (X12 on generators where several flows are late, X13 worst-case sensitivity).
 - Study 5 outcomes (1,608 jobs, 0 errors, 73 s, hashes in results/STUDY5_RAW.sha256): H16 CONFIRMED (every exact oracle <= 1e-13 over 700 runs/7 cells incl. two non-Wi-Fi generators; zero forced advances in any run; the real receiver on a truncated trace equals the airport formula exactly). H17a CONFIRMED (R_Q 1.89 [1.85,1.93] and 1.74 [1.67,1.80]); replay R_X 0.77 [0.60,0.94] and 0.98 [0.92,1.03] (second CI includes 1). H18a CONFIRMED (0 violations of the Lipschitz bound) but H18b NOT confirmed: in simulator cells Shapley and releaser changes are identical (single late flow), on generators Shapley is not more stable on average (differences negative or CI includes 0); only the worst case differs (max ratio change/lateness-change: Shapley 1.0, bound 2; releaser up to 348). H19 NOT confirmed as preregistered: every MC z <= 2.7 and efficiency 9e-10, but the preregistered quadrature-convergence criterion (1e-6) failed for P6 (7e-4, atom in the deterministic delay) and P7 (1.4e-5); post hoc refinement script posthoc_h19_refine.py (labelled post hoc) checks convergence.
@@ -159,7 +159,7 @@ Append-only. Each entry: what was decided, why, what it changes. Dates are 2026-
 - Disclosed in the paper: H18b not confirmed; H19 not confirmed as preregistered (quadrature criterion), with a labelled post hoc refinement (posthoc_h19_refine.py: P7 converges to 4.3e-7, P6 slowly because of the atom, z unaffected); simulator blocked packets are 95-100% single-late so the three blame rules coincide there; ns-3 enters only through forced-advance counts (0 of 1,440 runs) and aggregate bridge results; the ideal-resequencer assumption (no forced advances/timeouts) is the main open theoretical question; reviewers may call the structure theorem short.
 - Strength assessment given to the user: stronger conceptual core than the measurement paper (a structural theorem with exact consequences), but still a modest-depth theory paper whose practical payoff is bounded (rules coincide in the simulator regimes) and which is simulation-only.
 
-## D32 Study 6 (finite window + hold timer, ns-3 reorder buffer as second implementation) - preregistered 238bb68, results below (1,120 jobs, 0 errors, 3,207 s; hashes in results/STUDY6_RAW.sha256)
+## D32 Study 6 (finite window + hold timer, ns-3 reorder buffer as second implementation) - preregistered 817ad6e, results below (1,120 jobs, 0 errors, 3,207 s; hashes in results/STUDY6_RAW.sha256)
 - Trigger: an adversarial review supplied by the user argued the ideal-resequencer theory is not a theory of the deployed receiver and that the only validation was our own simulator. We agreed on both points, closed them with a preregistered study, and also softened claims (see D33).
 - Theory added: T8 window+timer release law R_k = max_{j<=k} min(A_j, F_j, T_j) (F_j window-forced time, T_j timer-forced time) with delivered-set characterisation; T9 airport structure on effective arrivals; T10 bound |l~ - l| <= delta_k and ||phi~ - phi||_1 <= 2 m delta_k; T11 per-packet applicability certificate (soundness: rejection implies an earlier resolution before physical arrival).
 - Outcomes: H20 CONFIRMED (900 traces, 18 configs W x tau x loss, 249,142 packets, 16,554 forced events, max error 0, zero delivered-set mismatches, 96.8% of traces with >= 1 forced event; the only low-event config is W=64/no timer/no loss at 42%, as expected). H21a CONFIRMED (airport oracles on effective arrivals, max error 5.7e-14), H21b CONFIRMED (T10 bounds, zero violations, max ratio 0.18 of the bound), H21c CONFIRMED (zero false rejections by the certificate). H22 CONFIRMED (ns-3 own reorder buffer, 160 scripted 3-flow runs, 3,253,034 packets checked, 873,950 blocked, release-law error exactly 0, no forced advances, no SN duplicates). H23 CONFIRMED (our unmodified receiver reproduces ns-3 release times exactly; oracles exact). H24 CONFIRMED (trace reproduces ns-3's own cross_wait/within_wait columns to 5e-10).

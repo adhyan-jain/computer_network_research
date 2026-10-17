@@ -11,7 +11,7 @@ Date: 2026-10-18. Scope: process integrity, reproducibility, independent recompu
 | Each preregistration is byte-identical to the version first committed (Studies 2-6 and the Study 5 exploratory plan) | pass |
 | Frozen ns-3 files (binary, patches, configs) unchanged since the Mission 1 freeze, except the disclosed `analyze_results.py` | pass |
 | Runners refuse to run if a hash changed or results exist (single use) | by construction; not re-tested by re-running |
-| Study 1 ordering (prereg 4f4b8f0 before results 49437e6) | checked in an earlier session, not re-run here |
+| Study 1 ordering (prereg d3b1131 before results 3000f3f) | checked in an earlier session, not re-run here |
 
 ## B. Reproducibility
 - Re-running `analyze_study4.py`, `analyze_study5.py`, `analyze_study6.py` reproduced the committed JSON byte-for-byte.
